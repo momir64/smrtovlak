@@ -7,7 +7,8 @@ Smrtovlak::Smrtovlak() :
 	window(1000, 800, "Smrtovlak", "assets/icons/simulation.png", false),
 	signature(window, "assets/fonts/jersey.ttf", 256),
 	background(window, "assets/background.png"),
-	button(window, Bounds(15, 15, 75), Color(169, 177, 209), Color(1.0f, 1.0f, 1.0f), 0.25f, 16) {
+	button(window, Bounds(15, 15, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
+		0.15f, 16, "assets/icons/simulation.png", "assets/icons/blueprint.png") {
 }
 
 void Smrtovlak::resizeCallback(GLFWwindow& window) {

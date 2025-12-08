@@ -5,14 +5,17 @@
 #include "GLFW/glfw3.h"
 #include "GL/glew.h"
 
-Button::Button(WindowManager& window, Bounds bounds, Color background, Color edge, float darken, float resolution) :
+Button::Button(WindowManager& window, Bounds bounds, Color background, Color edge,
+	float darken, float resolution, const std::string& imgOffPath, const std::string& imgOnPath) :
 	bounds(bounds), background(background), edge(edge), darken(darken), resolution(resolution),
-	window(window), shader("shaders/button.vert", "shaders/button.frag") {
+	window(window), shader("shaders/button.vert", "shaders/button.frag"),
+	imgOff(window, imgOffPath), imgOn(window, imgOnPath) {
+
 	float quad[] = {
-		0, 0,
-		1, 0,
-		1, 1,
-		0, 1
+		0,0,
+		1,0,
+		1,1,
+		0,1
 	};
 
 	glGenVertexArrays(1, &vao);
@@ -66,22 +69,32 @@ void Button::draw() {
 	shader.use();
 
 	float shade = pressed ? (1.0f - darken) : 1.0f;
-	float winW = window.getWidth();
 	float winH = window.getHeight();
+	float winW = window.getWidth();
+	float scale = 0.68f;
 
-	float ns = bounds.width / winW;
+	float nw = bounds.width / winW;
 	float nh = bounds.width / winH;
-
-	float nx = (winW - bounds.x) / winW - ns;
+	float nx = (winW - bounds.x) / winW - nw;
 	float ny = 1.0f - (bounds.y / winH) - nh;
 
 	shader.setVec3("uBg", background.red * shade, background.green * shade, background.blue * shade);
 	shader.setVec3("uEdge", edge.red, edge.green, edge.blue);
-	shader.setVec2("uSize", ns, nh);
-	shader.setVec2("uPos", nx, ny);
 	shader.setFloat("uPix", resolution);
+	shader.setVec2("uSize", nw, nh);
+	shader.setVec2("uPos", nx, ny);
 
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-}
 
+	auto& img = selected ? imgOn : imgOff;
+
+	float px = nx + nw / 2.f;
+	float py = ny + nh * (1.f - scale) / 2.f;
+	float pw = nw * scale;
+
+	if (selected)
+		imgOn.draw(Bounds(px, py, pw));
+	else
+		imgOff.draw(Bounds(px, py, pw));
+}

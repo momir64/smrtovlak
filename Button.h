@@ -5,6 +5,8 @@
 #include "DataClasses.h"
 #include "InputListener.h"
 #include "WindowManager.h"
+#include "Image.h"
+#include <string>
 
 class Button : public MouseListener {
 	WindowManager& window;
@@ -21,10 +23,15 @@ class Button : public MouseListener {
 	GLuint vao = 0, vbo = 0;
 	ButtonListener* listener = nullptr;
 
+	Image imgOff;
+	Image imgOn;
+
 	bool hit(float mx, float my) const;
 
 public:
-	Button(WindowManager& window, Bounds bounds, Color background, Color edge, float darken, float resolution);
+	Button(WindowManager& window, Bounds bounds, Color background, Color edge,
+		float darken, float resolution, const std::string& imgOffPath, const std::string& imgOnPath);
+
 	void mouseCallback(double x, double y, int button, int action, int mods) override;
 	void setListener(ButtonListener* listener);
 	void draw();
