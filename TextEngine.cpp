@@ -1,4 +1,4 @@
-#include "Text.h"
+#include "TextEngine.h"
 #include <freetype/config/ftheader.h>
 #include "WindowManager.h"
 #include FT_FREETYPE_H
@@ -8,7 +8,8 @@
 #include <vector>
 #include <string>
 
-Text::Text(WindowManager& window) : window(window), shader("shaders/text.vert", "shaders/text.frag") {
+TextEngine::TextEngine(WindowManager& window, const std::string& path, int pixelSize) :
+	window(window), shader("shaders/text.vert", "shaders/text.frag") {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
 
@@ -16,9 +17,11 @@ Text::Text(WindowManager& window) : window(window), shader("shaders/text.vert", 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, false, 4 * sizeof(float), 0);
+
+	loadFont(path, pixelSize);
 }
 
-void Text::loadFont(const std::string& path, int px) {
+void TextEngine::loadFont(const std::string& path, int px) {
 	glyphs.clear();
 
 	FT_Library ft;
@@ -72,7 +75,7 @@ void Text::loadFont(const std::string& path, int px) {
 	FT_Done_FreeType(ft);
 }
 
-void Text::draw(const std::wstring& text, float x, float y, float size) {
+void TextEngine::draw(const std::wstring& text, float x, float y, float size) {
 	shader.use();
 	shader.setInt("uTex", 0);
 
@@ -81,7 +84,8 @@ void Text::draw(const std::wstring& text, float x, float y, float size) {
 	float invW = 1.0f / float(window.getWidth());
 	float invH = 1.0f / float(window.getHeight());
 	float aspect = float(window.getWidth()) / float(window.getHeight());
-	float scale = size / 100.f / float(window.getWidth());
+	float scaleX = size / 100.f / float(window.getWidth());
+	float scaleY = size / 100.f / float(window.getHeight());
 
 	auto cps = utf16_decode(text);
 
@@ -95,11 +99,11 @@ void Text::draw(const std::wstring& text, float x, float y, float size) {
 
 		const auto& g = it->second;
 
-		float w = g.w * scale;
-		float h = g.h * scale * aspect;
+		float w = g.w * scaleX;
+		float h = g.h * scaleY;
 
-		float xpos = cursorX + g.bearingX * scale;
-		float ypos = cursorY - (g.h - g.bearingY) * scale;
+		float xpos = cursorX + g.bearingX * scaleX;
+		float ypos = cursorY - (g.h - g.bearingY) * scaleY;
 
 		float quad[6][4] = {
 			{xpos,     ypos,     0, 1},
@@ -119,11 +123,11 @@ void Text::draw(const std::wstring& text, float x, float y, float size) {
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		cursorX += (g.advance >> 6) * scale;
+		cursorX += (g.advance >> 6) * scaleX;
 	}
 }
 
-std::vector<uint32_t> Text::utf16_decode(const std::wstring& s) {
+std::vector<uint32_t> TextEngine::utf16_decode(const std::wstring& s) {
 	std::vector<uint32_t> out;
 	size_t i = 0;
 

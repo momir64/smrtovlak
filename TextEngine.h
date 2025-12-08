@@ -7,7 +7,7 @@
 #include <vector>
 #include <map>
 
-class Text {
+class TextEngine {
     struct Glyph {
         int bearingX, bearingY;
         int advance;
@@ -16,6 +16,7 @@ class Text {
     };
 
     std::vector<uint32_t> utf16_decode(const std::wstring& s);
+    void loadFont(const std::string& path, int pixelSize);
 
     std::map<uint32_t, Glyph> glyphs;
     GLuint vao = 0, vbo = 0;
@@ -23,7 +24,6 @@ class Text {
     Shader shader;
 
 public:
-    Text(WindowManager& window);
-    void loadFont(const std::string& path, int pixelSize);
+    TextEngine(WindowManager& window, const std::string& path, int pixelSize);
     void draw(const std::wstring& text, float x, float y, float sizeRelW);
 };

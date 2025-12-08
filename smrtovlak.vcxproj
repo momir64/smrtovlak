@@ -139,16 +139,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Image.h" />
+    <ClInclude Include="InputListener.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Smrtovlak.h" />
     <ClInclude Include="stb_image.h" />
-    <ClInclude Include="Text.h" />
+    <ClInclude Include="TextEngine.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="Smrtovlak.cpp" />
+    <ClCompile Include="TextEngine.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -11,7 +11,7 @@
 #include "stb_image.h"
 
 
-WindowManager::WindowManager(int width, int height, const std::string& title, bool fullscreen) {
+WindowManager::WindowManager(int width, int height, const std::string& title, const std::string& iconPath, bool fullscreen) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -51,15 +51,20 @@ WindowManager::WindowManager(int width, int height, const std::string& title, bo
 		exit(-1);
 	}
 
+	GLFWimage icon{};
+	icon.pixels = stbi_load(iconPath.c_str(), &icon.width, &icon.height, 0, 4);
+	glfwSetWindowIcon(window, 1, &icon);
+	stbi_image_free(icon.pixels);
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glfwSetWindowUserPointer(window, this);
-	glfwSetKeyCallback(window, keyboardCallback);
-	glfwSetMouseButtonCallback(window, mouseCallback);
-	glfwSetFramebufferSizeCallback(window, resizeCallback);
+	glfwSetKeyCallback(window, keyboardEventHandler);
+	glfwSetMouseButtonCallback(window, mouseEventHandler);
+	glfwSetFramebufferSizeCallback(window, resizeEventHandler);
 
-	addKeyboardListener(switchFullscreen);
+	addKeyboardListener(this);
 }
 
 WindowManager::~WindowManager() {
@@ -111,51 +116,37 @@ WindowManager& WindowManager::getWindowManager(GLFWwindow* window) {
 	return *self;
 }
 
-void WindowManager::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void WindowManager::keyboardEventHandler(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	auto& wm = getWindowManager(window);
 	for (auto& listener : wm.keyboardListeners)
-		listener(window, key, scancode, action, mods);
+		listener->keyboardCallback(*window, key, scancode, action, mods);
 }
 
-void WindowManager::mouseCallback(GLFWwindow* window, int button, int action, int mods) {
+void WindowManager::mouseEventHandler(GLFWwindow* window, int button, int action, int mods) {
 	auto& wm = getWindowManager(window);
 	for (auto& listener : wm.mouseListeners)
-		listener(window, button, action, mods);
+		listener->mouseCallback(*window, button, action, mods);
 }
 
-void WindowManager::resizeCallback(GLFWwindow* window, int newWidth, int newHeight) {
+void WindowManager::resizeEventHandler(GLFWwindow* window, int newWidth, int newHeight) {
 	auto& wm = getWindowManager(window);
 	wm.width = newWidth;
 	wm.height = newHeight;
 	glViewport(0, 0, newWidth, newHeight);
-	wm.resizeCallbackPtr();
+	if (wm.resizeListener) 
+		wm.resizeListener->resizeCallback(*window);
 }
 
-void WindowManager::addKeyboardListener(GLFWkeyfun listener) {
+void WindowManager::addKeyboardListener(KeyboardListener* listener) {
 	keyboardListeners.push_back(listener);
 }
 
-void WindowManager::setResizeCallback(ResizeCallback callback) {
-	resizeCallbackPtr = callback;
+void WindowManager::setResizeListener(ResizeListener* listener) {
+	resizeListener = listener;
 }
 
-void WindowManager::setIcon(const std::string& path) {
-	GLFWimage icon{};
-	icon.pixels = stbi_load(path.c_str(), &icon.width, &icon.height, 0, 4);
-	glfwSetWindowIcon(window, 1, &icon);
-	stbi_image_free(icon.pixels);
-}
-
-void WindowManager::addMouseListener(GLFWmousebuttonfun listener) {
+void WindowManager::addMouseListener(MouseListener* listener) {
 	mouseListeners.push_back(listener);
-}
-
-bool WindowManager::shouldClose() {
-	return glfwWindowShouldClose(window);
-}
-
-void WindowManager::swapBuffers() {
-	glfwSwapBuffers(window);
 }
 
 int WindowManager::getHeight() const {
@@ -166,11 +157,17 @@ int WindowManager::getWidth() const {
 	return width;
 }
 
-void WindowManager::switchFullscreen(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	auto& wm = getWindowManager(window);
+bool WindowManager::shouldClose() {
+	return glfwWindowShouldClose(window);
+}
 
+void WindowManager::swapBuffers() {
+	glfwSwapBuffers(window);
+}
+
+void WindowManager::keyboardCallback(GLFWwindow& window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_F && action == GLFW_PRESS)
-		wm.setFullscreen(!wm.fullscreen);
+		setFullscreen(!fullscreen);
 	else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		exit(0);
 }
