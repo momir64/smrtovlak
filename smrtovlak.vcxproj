@@ -140,22 +140,26 @@
     <None Include="shaders\text.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Blueprint.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="DataClasses.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="InputListener.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Simulation.h" />
     <ClInclude Include="Smrtovlak.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TextEngine.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Blueprint.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="DataClasses.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="Smrtovlak.cpp" />
     <ClCompile Include="TextEngine.cpp" />
     <ClCompile Include="WindowManager.cpp" />

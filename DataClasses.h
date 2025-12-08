@@ -5,7 +5,7 @@ public:
 	float green;
 	float blue;
 
-	Color(float red, float green, float blue);
+	Color(float red = 0, float green = 0, float blue = 0);
 	Color(int red, int green, int blue);
 };
 

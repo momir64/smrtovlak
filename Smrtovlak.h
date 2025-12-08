@@ -4,14 +4,15 @@
 #include "WindowManager.h"
 #include "InputListener.h"
 #include "TextEngine.h"
+#include "Simulation.h"
+#include "Blueprint.h"
 #include "Button.h"
-#include "Image.h"
-#include <iostream>
 
 class Smrtovlak : public ResizeListener, public ButtonListener {
 	WindowManager window;
+	Simulation simulation;
 	TextEngine signature;
-	Image background;
+	Blueprint blueprint;
 	Button button;
 
 public:
@@ -20,8 +21,6 @@ public:
 	void draw();
 	int run();
 
-	void buttonChanged(Button& btn, int newMode) override {
-		std::cout << "Button mode = " << newMode << "\n";
-	}
+	void buttonChanged(Button& button, int selected) override;
 };
 

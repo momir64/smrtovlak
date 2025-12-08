@@ -6,6 +6,7 @@
 #include "InputListener.h"
 #include "WindowManager.h"
 #include "Image.h"
+#include <vector>
 #include <string>
 
 class Button : public MouseListener {
@@ -23,16 +24,16 @@ class Button : public MouseListener {
 	GLuint vao = 0, vbo = 0;
 	ButtonListener* listener = nullptr;
 
-	Image imgOff;
-	Image imgOn;
+	std::vector<Image> images;
 
 	bool hit(float mx, float my) const;
 
 public:
 	Button(WindowManager& window, Bounds bounds, Color background, Color edge,
-		float darken, float resolution, const std::string& imgOffPath, const std::string& imgOnPath);
+		float darken, float resolution, const std::vector<std::string>& imagePaths);
 
 	void mouseCallback(double x, double y, int button, int action, int mods) override;
 	void setListener(ButtonListener* listener);
+	int getSelected() const;
 	void draw();
 };

@@ -4,19 +4,19 @@
 #include "DataClasses.h"
 #include "GLFW/glfw3.h"
 #include "GL/glew.h"
+#include <string>
+#include <vector>
 
 Button::Button(WindowManager& window, Bounds bounds, Color background, Color edge,
-	float darken, float resolution, const std::string& imgOffPath, const std::string& imgOnPath) :
+	float darken, float resolution, const std::vector<std::string>& imagePaths) :
 	bounds(bounds), background(background), edge(edge), darken(darken), resolution(resolution),
-	window(window), shader("shaders/button.vert", "shaders/button.frag"),
-	imgOff(window, imgOffPath), imgOn(window, imgOnPath) {
+	window(window), shader("shaders/button.vert", "shaders/button.frag") {
 
-	float quad[] = {
-		0,0,
-		1,0,
-		1,1,
-		0,1
-	};
+	images.reserve(imagePaths.size());
+	for (auto& p : imagePaths)
+		images.emplace_back(window, p);
+
+	float quad[] = { 0,0, 1,0, 1,1, 0,1 };
 
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
@@ -33,6 +33,10 @@ Button::Button(WindowManager& window, Bounds bounds, Color background, Color edg
 
 void Button::setListener(ButtonListener* listener) {
 	this->listener = listener;
+}
+
+int Button::getSelected() const {
+	return selected;
 }
 
 bool Button::hit(float px, float py) const {
@@ -58,8 +62,12 @@ void Button::mouseCallback(double x, double y, int button, int action, int mods)
 
 	if (action == GLFW_RELEASE) {
 		if (pressed && inside) {
-			selected ^= 1;
-			if (listener) listener->buttonChanged(*this, selected);
+			selected++;
+			if (selected >= images.size()) 
+				selected = 0;
+
+			if (listener) 
+				listener->buttonChanged(*this, selected);
 		}
 		pressed = false;
 	}
@@ -71,7 +79,7 @@ void Button::draw() {
 	float shade = pressed ? (1.0f - darken) : 1.0f;
 	float winH = window.getHeight();
 	float winW = window.getWidth();
-	float scale = 0.68f;
+	float scale = 0.7f;
 
 	float nw = bounds.width / winW;
 	float nh = bounds.width / winH;
@@ -87,14 +95,9 @@ void Button::draw() {
 	glBindVertexArray(vao);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-	auto& img = selected ? imgOn : imgOff;
-
 	float px = nx + nw / 2.f;
 	float py = ny + nh * (1.f - scale) / 2.f;
 	float pw = nw * scale;
 
-	if (selected)
-		imgOn.draw(Bounds(px, py, pw));
-	else
-		imgOff.draw(Bounds(px, py, pw));
+	images[selected].draw(Bounds(px, py, pw));
 }
