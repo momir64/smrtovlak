@@ -1,9 +1,11 @@
 #pragma once
 #include <GLFW/glfw3.h>
 
+class Button;
+
 class MouseListener {
 public:
-	virtual void mouseCallback(GLFWwindow& window, int button, int action, int mods) = 0;
+	virtual void mouseCallback(double x, double y, int button, int action, int mods) = 0;
 };
 
 class KeyboardListener {
@@ -14,4 +16,9 @@ public:
 class ResizeListener {
 public:
 	virtual void resizeCallback(GLFWwindow& window) = 0;
+};
+
+class ButtonListener {
+public:
+	virtual void buttonChanged(Button& btn, int selected) = 0;
 };

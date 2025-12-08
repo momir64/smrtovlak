@@ -132,12 +132,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="shaders\button.frag" />
+    <None Include="shaders\button.vert" />
     <None Include="shaders\image.frag" />
     <None Include="shaders\image.vert" />
     <None Include="shaders\text.frag" />
     <None Include="shaders\text.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="DataClasses.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="InputListener.h" />
     <ClInclude Include="Shader.h" />
@@ -147,6 +151,8 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="DataClasses.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Shader.cpp" />

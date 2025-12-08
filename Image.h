@@ -2,6 +2,7 @@
 #include <string>
 #include <GL/glew.h>
 #include "WindowManager.h"
+#include "DataClasses.h"
 #include "Shader.h"
 
 class Image {
@@ -15,5 +16,5 @@ public:
 	Image(WindowManager& window, const std::string& path);
 	~Image();
 
-	void draw(float posX, float posY, float width);
+	void draw(Bounds bounds);
 };

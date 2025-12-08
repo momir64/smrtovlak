@@ -1,6 +1,7 @@
 #include "TextEngine.h"
 #include <freetype/config/ftheader.h>
 #include "WindowManager.h"
+#include "DataClasses.h"
 #include FT_FREETYPE_H
 #include "GL/glew.h"
 #include <cstdint>
@@ -8,7 +9,7 @@
 #include <vector>
 #include <string>
 
-TextEngine::TextEngine(WindowManager& window, const std::string& path, int pixelSize) :
+TextEngine::TextEngine(WindowManager& window, const std::string& path, int glyphResolution) :
 	window(window), shader("shaders/text.vert", "shaders/text.frag") {
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);
@@ -18,10 +19,10 @@ TextEngine::TextEngine(WindowManager& window, const std::string& path, int pixel
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, false, 4 * sizeof(float), 0);
 
-	loadFont(path, pixelSize);
+	loadFont(path, glyphResolution);
 }
 
-void TextEngine::loadFont(const std::string& path, int px) {
+void TextEngine::loadFont(const std::string& path, int glyphResolution) {
 	glyphs.clear();
 
 	FT_Library ft;
@@ -29,7 +30,7 @@ void TextEngine::loadFont(const std::string& path, int px) {
 
 	FT_Face face;
 	FT_New_Face(ft, path.c_str(), 0, &face);
-	FT_Set_Pixel_Sizes(face, 0, px);
+	FT_Set_Pixel_Sizes(face, 0, glyphResolution);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -75,7 +76,7 @@ void TextEngine::loadFont(const std::string& path, int px) {
 	FT_Done_FreeType(ft);
 }
 
-void TextEngine::draw(const std::wstring& text, float x, float y, float size) {
+void TextEngine::draw(const std::wstring& text, Bounds bounds) {
 	shader.use();
 	shader.setInt("uTex", 0);
 
@@ -84,13 +85,13 @@ void TextEngine::draw(const std::wstring& text, float x, float y, float size) {
 	float invW = 1.0f / float(window.getWidth());
 	float invH = 1.0f / float(window.getHeight());
 	float aspect = float(window.getWidth()) / float(window.getHeight());
-	float scaleX = size / 100.f / float(window.getWidth());
-	float scaleY = size / 100.f / float(window.getHeight());
+	float scaleX = bounds.width / 100.f / float(window.getWidth());
+	float scaleY = bounds.width / 100.f / float(window.getHeight());
 
 	auto cps = utf16_decode(text);
 
-	float cursorX = x * invW;
-	float cursorY = 1 - (y * invH);
+	float cursorX = bounds.x * invW;
+	float cursorY = 1 - (bounds.y * invH);
 
 	for (uint32_t cp : cps) {
 		auto it = glyphs.find(cp);

@@ -1,4 +1,5 @@
 #include "WindowManager.h"
+#include "InputListener.h"
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
 #include <algorithm>
@@ -123,9 +124,11 @@ void WindowManager::keyboardEventHandler(GLFWwindow* window, int key, int scanco
 }
 
 void WindowManager::mouseEventHandler(GLFWwindow* window, int button, int action, int mods) {
+	double x, y;
+	glfwGetCursorPos(window, &x, &y);
 	auto& wm = getWindowManager(window);
 	for (auto& listener : wm.mouseListeners)
-		listener->mouseCallback(*window, button, action, mods);
+		listener->mouseCallback(x, y, button, action, mods);
 }
 
 void WindowManager::resizeEventHandler(GLFWwindow* window, int newWidth, int newHeight) {
@@ -133,7 +136,7 @@ void WindowManager::resizeEventHandler(GLFWwindow* window, int newWidth, int new
 	wm.width = newWidth;
 	wm.height = newHeight;
 	glViewport(0, 0, newWidth, newHeight);
-	if (wm.resizeListener) 
+	if (wm.resizeListener)
 		wm.resizeListener->resizeCallback(*window);
 }
 

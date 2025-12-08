@@ -2,6 +2,7 @@
 #include <string>
 #include "GL/glew.h"
 #include "stb_image.h"
+#include "DataClasses.h"
 #include "WindowManager.h"
 
 Image::Image(WindowManager& window, const std::string& path) : window(window), shader("shaders/image.vert", "shaders/image.frag") {
@@ -42,12 +43,12 @@ Image::~Image() {
 	glDeleteBuffers(1, &vbo);
 }
 
-void Image::draw(float posX, float posY, float width) {
-	float height = width * (float(imgH) / float(imgW)) * (float(window.getWidth()) / float(window.getHeight()));
+void Image::draw(Bounds bounds) {
+	float height = bounds.width * (float(imgH) / float(imgW)) * (float(window.getWidth()) / float(window.getHeight()));
 
 	shader.use();
-	shader.setVec2("uPos", posX, posY);
-	shader.setVec2("uSize", width, height);
+	shader.setVec2("uPos", bounds.x, bounds.y);
+	shader.setVec2("uSize", bounds.width, height);
 	shader.setInt("tex", 0);
 
 	glActiveTexture(GL_TEXTURE0);
