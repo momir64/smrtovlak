@@ -5,7 +5,7 @@
 #include "Image.h"
 #include "Text.h"
 
-WindowManager window(1000, 800, "Smrtovlak", "assets/icons/simulation.png", false);
+WindowManager window(1000, 800, "Smrtovlak", false);
 Image background(window, "assets/background.png");
 Text tr(window);
 
@@ -21,8 +21,9 @@ void static draw() {
 
 int static run() {
 	glClearColor(69 / 255.f, 164 / 255.f, 212 / 255.f, 1.0f);
-	window.setResizeCallback(draw);
+	window.setIcon("assets/icons/simulation.png");
 	tr.loadFont("assets/fonts/jersey.ttf", 256);
+	window.setResizeCallback(draw);
 
 	while (!window.shouldClose()) {
 		draw();

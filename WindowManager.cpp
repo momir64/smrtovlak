@@ -11,7 +11,7 @@
 #include "stb_image.h"
 
 
-WindowManager::WindowManager(int width, int height, const std::string& title, const std::string& iconPath, bool fullscreen) {
+WindowManager::WindowManager(int width, int height, const std::string& title, bool fullscreen) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -53,11 +53,6 @@ WindowManager::WindowManager(int width, int height, const std::string& title, co
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	GLFWimage icon{};
-	icon.pixels = stbi_load(iconPath.c_str(), &icon.width, &icon.height, 0, 4);
-	glfwSetWindowIcon(window, 1, &icon);
-	stbi_image_free(icon.pixels);
 
 	glfwSetWindowUserPointer(window, this);
 	glfwSetKeyCallback(window, keyboardCallback);
@@ -142,6 +137,13 @@ void WindowManager::addKeyboardListener(GLFWkeyfun listener) {
 
 void WindowManager::setResizeCallback(ResizeCallback callback) {
 	resizeCallbackPtr = callback;
+}
+
+void WindowManager::setIcon(const std::string& path) {
+	GLFWimage icon{};
+	icon.pixels = stbi_load(path.c_str(), &icon.width, &icon.height, 0, 4);
+	glfwSetWindowIcon(window, 1, &icon);
+	stbi_image_free(icon.pixels);
 }
 
 void WindowManager::addMouseListener(GLFWmousebuttonfun listener) {

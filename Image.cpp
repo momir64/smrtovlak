@@ -7,6 +7,7 @@
 Image::Image(WindowManager& window, const std::string& path) : window(window), shader("shaders/image.vert", "shaders/image.frag") {
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* pixels = stbi_load(path.c_str(), &imgW, &imgH, nullptr, 4);
+	stbi_set_flip_vertically_on_load(false);
 
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);

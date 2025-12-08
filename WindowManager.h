@@ -24,10 +24,11 @@ class WindowManager {
 	GLFWmonitor* getMonitor();
 
 public:
-	WindowManager(int width, int height, const std::string& title, const std::string& iconPath, bool fullscreen);
+	WindowManager(int width, int height, const std::string& title, bool fullscreen);
 	void addMouseListener(GLFWmousebuttonfun listener);
 	void addKeyboardListener(GLFWkeyfun listener);
 	void setResizeCallback(ResizeCallback callback);
+	void setIcon(const std::string& iconPath);
 	void setFullscreen(bool fullscreen);
 	int getHeight() const;
 	int getWidth() const;
