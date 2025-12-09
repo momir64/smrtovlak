@@ -30,6 +30,8 @@ class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     void drawDrawing();
     void drawPulses();
 
+    void finalizeAndCloseLine();
+
 public:
     Blueprint(WindowManager& window, std::vector<Coords>& tracks);
 

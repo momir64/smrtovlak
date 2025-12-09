@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "Button.h" 
 #include <numbers>
+#include <cstdlib>
 #include <utility>
 #include <vector>
 #include <cmath>
@@ -48,8 +49,8 @@ Bounds Blueprint::contentBounds() const {
 
 Bounds Blueprint::platformBounds() const {
 	Bounds c = contentBounds();
-	float pw = window.getWidth() * PLATFORM_WIDTH_RATIO;
-	float ph = window.getWidth() * PLATFORM_HEIGHT_RATIO;
+	float pw = c.width * PLATFORM_WIDTH_RATIO;
+	float ph = c.width * PLATFORM_HEIGHT_RATIO;
 	return Bounds(c.x + c.width * 0.5f - pw * 0.5f, c.y + c.height - ph, pw, ph);
 }
 
@@ -76,7 +77,7 @@ int Blueprint::detectPulse(float mx, float my) const {
 	float w = window.getWidth(), h = window.getHeight();
 
 	float cx1 = p.x / w, cy = (h - p.y) / h;
-	float cx2 = cx1 + PULSE_OFFSET;
+	float cx2 = (p.x + p.width) / w;
 
 	float nx = mx / w, ny = my / h;
 
@@ -115,8 +116,9 @@ void Blueprint::mouseCallback(double x, double y, int button, int action, int) {
 	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && !drawing.empty() && drawingActive) {
-		drawingActive = (hoveringPulse != 3 - startingPulse);
-		if (drawingActive) drawing.clear();
+		bool finishedOpposite = (hoveringPulse == 3 - startingPulse);
+		drawingActive = !finishedOpposite;
+		if (finishedOpposite) finalizeAndCloseLine(); else drawing.clear();
 		startingPulse = 0;
 	}
 }
@@ -204,16 +206,16 @@ void Blueprint::drawPulses() {
 	Color white(255, 255, 255);
 
 	float w = window.getWidth(), h = window.getHeight();
-	float x = p.x / w, y = p.y / h;
+	float x1 = p.x / w, x2 = (p.x + p.width) / w, y = p.y / h;
 
 	float size = std::max(PULSE_SIZE_FACTOR * std::sqrt(p.height), PULSE_MIN_SIZE);
 	float speed = std::max(PULSE_SPEED_BASE / std::pow(p.height, 0.01f), PULSE_SPEED_MIN);
 
 	if (startingPulse != 1 && drawingActive)
-		pulse.draw(x, y, size, white, PULSE_STRENGTH, PULSE_ASPECT, speed, hoveringPulse == 1 ? PULSE_HOVER_SCALE : 1.f);
+		pulse.draw(x1, y, size, white, PULSE_STRENGTH, PULSE_ASPECT, speed, hoveringPulse == 1 ? PULSE_HOVER_SCALE : 1.f);
 
 	if (startingPulse != 2 && drawingActive)
-		pulse.draw(x + PULSE_OFFSET, y, size, white, PULSE_STRENGTH, PULSE_ASPECT, speed, hoveringPulse == 2 ? PULSE_HOVER_SCALE : 1.f);
+		pulse.draw(x2, y, size, white, PULSE_STRENGTH, PULSE_ASPECT, speed, hoveringPulse == 2 ? PULSE_HOVER_SCALE : 1.f);
 }
 
 void Blueprint::drawDrawing() {
@@ -230,6 +232,91 @@ void Blueprint::drawDrawing() {
 	}
 
 	line.draw(pts, Color(255, 255, 255), 6);
+}
+
+static inline void addHermite(std::vector<Coords>& out, const Coords& p0, const Coords& t0, const Coords& p1, const Coords& t1, int steps) {
+	for (int i = 1; i <= steps; i++) {
+		float t = float(i) / steps, tt = t * t, ttt = tt * t;
+		float h0 = 2.f * ttt - 3.f * tt + 1.f;
+		float h1 = ttt - 2.f * tt + t;
+		float h2 = -2.f * ttt + 3.f * tt;
+		float h3 = ttt - tt;
+		out.emplace_back(
+			h0 * p0.x + h1 * t0.x + h2 * p1.x + h3 * t1.x,
+			h0 * p0.y + h1 * t0.y + h2 * p1.y + h3 * t1.y
+		);
+	}
+}
+
+static inline Coords avgDir(const std::vector<Coords>& v, int start, int count) {
+	float sx = 0.f, sy = 0.f; int used = 0;
+	for (int i = 0; i < count; i++) {
+		int a = start + i, b = a + 1;
+		if (b >= (int)v.size()) break;
+		sx += v[b].x - v[a].x;
+		sy += v[b].y - v[a].y;
+		used++;
+	}
+	if (used == 0) return { 1.f, 0.f };
+	float L = std::sqrt(sx * sx + sy * sy);
+	return (L < 1e-6f) ? Coords{ 1.f, 0.f } : Coords{ sx / L, sy / L };
+}
+
+void Blueprint::finalizeAndCloseLine() {
+	if (drawing.size() < 2) return;
+
+	if (drawing.front().x > drawing.back().x)
+		std::reverse(drawing.begin(), drawing.end());
+
+	Bounds p = platformBounds();
+	float wh = window.getHeight();
+
+	Coords l = toLocal(p.x, wh - p.y);
+	Coords r = toLocal(p.x + p.width, wh - p.y);
+	float trim = l.y * 1.5f;
+
+	size_t L = 0;
+	while (L + 1 < drawing.size() && drawing[L].x > l.x - trim) L++;
+
+	size_t R = drawing.size() - 1;
+	while (R > L + 1 && drawing[R].x < r.x + trim) R--;
+
+	drawing.erase(drawing.begin() + R + 1, drawing.end());
+	drawing.erase(drawing.begin(), drawing.begin() + L);
+	if (drawing.size() < 2) return;
+
+	Coords A = drawing.front();
+	Coords B = drawing.back();
+
+	Coords dirA = avgDir(drawing, 0, 5);
+	Coords dirB = avgDir(drawing, (int)drawing.size() - 6, 5);
+
+	float curve = l.y * 2.4f;
+
+	Coords t0_left = { -curve, 0.f };
+	Coords t1_left = { dirA.x * curve, dirA.y * curve };
+	Coords t0_right = { -curve, 0.f };
+	Coords t1_right = { dirB.x * curve, dirB.y * curve };
+
+	std::vector<Coords> out;
+	out.reserve(drawing.size() + 48);
+
+	out.push_back(l);
+	addHermite(out, l, t0_left, A, t1_left, 24);
+
+	for (auto& q : drawing)
+		out.push_back(q);
+
+	addHermite(out, B, t1_right, r, t0_right, 24);
+	out.push_back(r);
+
+	int steps = 24;
+	for (int i = 1; i <= steps; i++) {
+		float t = float(i) / steps;
+		out.emplace_back(r.x + (l.x - r.x) * t, r.y + (l.y - r.y) * t);
+	}
+
+	drawing.swap(out);
 }
 
 void Blueprint::draw() {
