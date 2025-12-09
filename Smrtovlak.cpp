@@ -9,9 +9,9 @@
 #include "DataClasses.h"
 
 Smrtovlak::Smrtovlak() :
-	window(1000, 800, "Smrtovlak", "assets/icons/simulation.png", false),
-	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window),
-	button(window, Bounds(15, 15, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
+	window(1000, 800, 760, 300, "Smrtovlak", "assets/icons/simulation.png", false),
+	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window), blueprint(window, tracks),
+	button(window, Bounds(46, 20, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
 		0.15f, 16, std::vector<std::string>{ "assets/icons/blueprint.png", "assets/icons/simulation.png"}) {
 }
 
@@ -27,7 +27,7 @@ void Smrtovlak::draw() {
 	else
 		simulation.draw();
 
-	signature.draw(L"Momir Stanišić SV39/2022", Bounds(25, 50, 18));
+	signature.draw(L"Momir Stanišić SV39/2022", Bounds(46, 72, 18));
 	button.draw();
 
 	window.swapBuffers();
@@ -35,8 +35,10 @@ void Smrtovlak::draw() {
 }
 
 int Smrtovlak::run() {
-	Color background(69, 164, 212);
+	//Color background(69, 164, 212);
+	Color background = 1 ? Color(10, 84, 153) : Color(69, 164, 212);
 	glClearColor(background.red, background.green, background.blue, 1.0f);
+	window.addMouseListener(&blueprint);
 	window.setResizeListener(this);
 	button.setListener(this);
 
@@ -46,11 +48,11 @@ int Smrtovlak::run() {
 	while (!window.shouldClose()) {
 		auto start = std::chrono::high_resolution_clock::now();
 
-		draw(); 
-		
+		draw();
+
 		auto end = std::chrono::high_resolution_clock::now();
 		double remaining = targetFrame - (end - start).count();
-		if (remaining > 0) 
+		if (remaining > 0)
 			std::this_thread::sleep_for(std::chrono::duration<double>(remaining));
 	}
 

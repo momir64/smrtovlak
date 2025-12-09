@@ -3,12 +3,15 @@
 #include <GLFW/glfw3.h>
 #include "WindowManager.h"
 #include "InputListener.h"
+#include "DataClasses.h"
 #include "TextEngine.h"
 #include "Simulation.h"
 #include "Blueprint.h"
 #include "Button.h"
+#include <vector>
 
 class Smrtovlak : public ResizeListener, public ButtonListener {
+	std::vector<Coords> tracks;
 	WindowManager window;
 	Simulation simulation;
 	TextEngine signature;

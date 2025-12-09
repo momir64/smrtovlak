@@ -19,12 +19,7 @@ Image::Image(WindowManager& window, const std::string& path) : window(window), s
 
 	stbi_image_free(pixels);
 
-	float quad[] = {
-		0, 0,
-		1, 0,
-		1, 1,
-		0, 1,
-	};
+	float quad[] = { 0,0, 1,0, 1,1, 0,1 };
 
 	glGenVertexArrays(1, &vao);
 	glGenBuffers(1, &vbo);

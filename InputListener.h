@@ -6,6 +6,7 @@ class Button;
 class MouseListener {
 public:
 	virtual void mouseCallback(double x, double y, int button, int action, int mods) = 0;
+	virtual void cursorCallback(double x, double y) {};
 };
 
 class KeyboardListener {

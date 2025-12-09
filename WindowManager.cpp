@@ -12,7 +12,7 @@
 #include "stb_image.h"
 
 
-WindowManager::WindowManager(int width, int height, const std::string& title, const std::string& iconPath, bool fullscreen) {
+WindowManager::WindowManager(int width, int height, int minWidth, int minHeight, const std::string& title, const std::string& iconPath, bool fullscreen) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -52,6 +52,8 @@ WindowManager::WindowManager(int width, int height, const std::string& title, co
 		exit(-1);
 	}
 
+	glfwSetWindowSizeLimits(window, minWidth, minHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
+
 	GLFWimage icon{};
 	icon.pixels = stbi_load(iconPath.c_str(), &icon.width, &icon.height, 0, 4);
 	glfwSetWindowIcon(window, 1, &icon);
@@ -62,6 +64,7 @@ WindowManager::WindowManager(int width, int height, const std::string& title, co
 
 	glfwSetWindowUserPointer(window, this);
 	glfwSetKeyCallback(window, keyboardEventHandler);
+	glfwSetCursorPosCallback(window, cursorEventHandler);
 	glfwSetMouseButtonCallback(window, mouseEventHandler);
 	glfwSetFramebufferSizeCallback(window, resizeEventHandler);
 
@@ -129,6 +132,12 @@ void WindowManager::mouseEventHandler(GLFWwindow* window, int button, int action
 	auto& wm = getWindowManager(window);
 	for (auto& listener : wm.mouseListeners)
 		listener->mouseCallback(x, y, button, action, mods);
+}
+
+void WindowManager::cursorEventHandler(GLFWwindow* window, double x, double y) {
+	auto& wm = getWindowManager(window);
+	for (auto* listener : wm.mouseListeners)
+		listener->cursorCallback(x, y);
 }
 
 void WindowManager::resizeEventHandler(GLFWwindow* window, int newWidth, int newHeight) {

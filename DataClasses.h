@@ -18,3 +18,10 @@ public:
 	Bounds(float x, float y, float width);
 };
 
+class Coords {
+public:
+	float x;
+	float y;
+
+	Coords(float x = 0, float y = 0);
+};

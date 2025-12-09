@@ -11,3 +11,7 @@ Color::Color(int red, int green, int blue) :
 Bounds::Bounds(float x, float y, float width) :
 	x(x), y(y), width(width) {
 }
+
+Coords::Coords(float x, float y) :
+	x(x), y(y) {
+}
