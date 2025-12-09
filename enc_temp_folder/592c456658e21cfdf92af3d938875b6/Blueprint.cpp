@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 namespace {
 	constexpr float MARGIN = 50.f, TOP = 150.f;
@@ -125,7 +126,12 @@ void Blueprint::cursorCallback(double x, double y) {
 	float mx = float(x), my = float(window.getHeight() - y);
 	hoveringPulse = detectPulse(mx, my);
 	if (!drawingActive || drawing.empty()) return;
-	drawing.push_back(clipToContent(mx, my));
+	Coords c = clipToContent(mx, my);
+
+	if (drawing.back().x == c.x && drawing.back().y == c.y)
+		std::cout << "ok" << std::endl;
+
+	drawing.push_back(c);
 }
 
 void Blueprint::drawBorder() {

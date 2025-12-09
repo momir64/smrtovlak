@@ -1,9 +1,9 @@
-#include "Pulse.h"
+#include "PulseEngine.h"
 #include "WindowManager.h"
 #include "DataClasses.h"
 #include "GLFW/glfw3.h"
 
-Pulse::Pulse(WindowManager& window) :
+PulseEngine::PulseEngine(WindowManager& window) :
 	window(window), shader("shaders/pulse.vert", "shaders/pulse.frag") {
 	float quad[] = { 0,0,  1,0,  1,1,  0,1 };
 
@@ -17,7 +17,7 @@ Pulse::Pulse(WindowManager& window) :
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 }
 
-void Pulse::draw(float x, float y, float size, const Color& col, float speed, float strength, float resolution, float opacity) {
+void PulseEngine::draw(float x, float y, float size, const Color& col, float speed, float strength, float resolution, float opacity) {
 	shader.use();
 
 	shader.setFloat("uAspect", float(window.getWidth()) / float(window.getHeight()));

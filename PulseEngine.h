@@ -4,12 +4,12 @@
 #include "DataClasses.h"
 #include <GL/glew.h>
 
-class Pulse {
+class PulseEngine {
     GLuint vao = 0, vbo = 0;
     WindowManager& window;
     Shader shader;
 
 public:
-    Pulse(WindowManager& window);
+    PulseEngine(WindowManager& window);
     void draw(float x, float y, float size, const Color& col, float speed, float strength, float resolution, float opacity);
 };
