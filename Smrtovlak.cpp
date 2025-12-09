@@ -10,7 +10,7 @@
 
 Smrtovlak::Smrtovlak() :
 	window(1000, 800, 760, 300, "Smrtovlak", "assets/icons/simulation.png", false),
-	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window), blueprint(window, tracks),
+	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window), blueprint(window, tracks, "smrtovlak.track"),
 	button(window, Bounds(46, 20, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
 		0.15f, 16, std::vector<std::string>{ "assets/icons/blueprint.png", "assets/icons/simulation.png"}) {
 }
@@ -41,6 +41,7 @@ int Smrtovlak::run() {
 	window.addMouseListener(&blueprint);
 	window.setResizeListener(this);
 	button.setListener(this);
+	blueprint.loadTrack();
 
 	const double targetFrame = 1.0 / 75.0;
 	auto last = std::chrono::high_resolution_clock::now();

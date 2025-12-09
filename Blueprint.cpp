@@ -8,9 +8,10 @@
 #include <algorithm>
 #include "Button.h" 
 #include <numbers>
-#include <cstdlib>
+#include <fstream>
 #include <utility>
 #include <vector>
+#include <string>
 #include <cmath>
 
 namespace {
@@ -33,8 +34,8 @@ namespace {
 	inline float deg2rad(float d) { return d * (std::numbers::pi_v<float> / 180.f); }
 }
 
-Blueprint::Blueprint(WindowManager& win, std::vector<Coords>& tracks) :
-	window(win), drawing(tracks), pulse(win), line(win),
+Blueprint::Blueprint(WindowManager& win, std::vector<Coords>& tracks, const std::string& trackPath) :
+	window(win), drawing(tracks), pulse(win), line(win), trackPath(trackPath),
 	trash(win, Bounds(166, 20, 100, 0), Color(183, 198, 215), Color(255, 255, 255),
 		0.15f, 16, { "assets/icons/trash.png", "assets/icons/trash.png" }) {
 	window.addKeyboardListener(this);
@@ -98,12 +99,14 @@ void Blueprint::keyboardCallback(GLFWwindow&, int key, int, int action, int) {
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
 		drawingActive = true;
 		drawing.clear();
+		saveTrack();
 	}
 }
 
 void Blueprint::buttonChanged(Button&, int) {
 	drawingActive = true;
 	drawing.clear();
+	saveTrack();
 }
 
 void Blueprint::mouseCallback(double x, double y, int button, int action, int) {
@@ -120,6 +123,7 @@ void Blueprint::mouseCallback(double x, double y, int button, int action, int) {
 		drawingActive = !finishedOpposite;
 		if (finishedOpposite) finalizeAndCloseLine(); else drawing.clear();
 		startingPulse = 0;
+		saveTrack();
 	}
 }
 
@@ -260,6 +264,24 @@ static inline Coords avgDir(const std::vector<Coords>& v, int start, int count) 
 	if (used == 0) return { 1.f, 0.f };
 	float L = std::sqrt(sx * sx + sy * sy);
 	return (L < 1e-6f) ? Coords{ 1.f, 0.f } : Coords{ sx / L, sy / L };
+}
+
+void Blueprint::saveTrack() {
+	std::ofstream file(trackPath);
+	if (!file.is_open()) return;
+	for (const auto& c : drawing)
+		file << c.x << " " << c.y << "\n";
+}
+
+void Blueprint::loadTrack() {
+	std::ifstream file(trackPath);
+	if (!file.is_open()) return;
+	drawing.clear();
+	float x, y;
+	while (file >> x >> y)
+		drawing.emplace_back(x, y);
+	if (!drawing.empty())
+		drawingActive = false;
 }
 
 void Blueprint::finalizeAndCloseLine() {

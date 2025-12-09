@@ -6,11 +6,13 @@
 #include "LineEngine.h"
 #include "Button.h"
 #include <vector>
+#include <string>
 
 class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     int hoveringPulse = 0, startingPulse = 0;
     std::vector<Coords>& drawing;
     bool drawingActive = true;
+	std::string trackPath;
     WindowManager& window;
     PulseEngine pulse;
     LineEngine line;
@@ -25,20 +27,22 @@ class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     Coords toLocal(float mx, float my) const;
 
     void drawPlatform();
-    void drawBorder();
-    void drawGrid();
     void drawDrawing();
     void drawPulses();
+    void drawBorder();
+    void drawGrid();
 
     void finalizeAndCloseLine();
+    void saveTrack();
 
 public:
-    Blueprint(WindowManager& window, std::vector<Coords>& tracks);
+    Blueprint(WindowManager& window, std::vector<Coords>& tracks, const std::string& trackPath);
 
+    void loadTrack();
     void draw();
 
     void keyboardCallback(GLFWwindow&, int key, int scancode, int action, int mods) override;
     void mouseCallback(double x, double y, int button, int action, int mods) override;
-    void cursorCallback(double x, double y) override;
     void buttonChanged(Button&, int selected) override;
+    void cursorCallback(double x, double y) override;
 };
