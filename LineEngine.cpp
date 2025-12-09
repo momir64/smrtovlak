@@ -33,7 +33,7 @@ void LineEngine::draw(const std::vector<Coords>& points, const Color& color, flo
 
 	if (pts.size() < 2) return;
 
-	if (pts.size() > 32) {
+	if (pts.size() > 5) {
 		std::vector<Coords> tmp(pts.size());
 		for (int iter = 0; iter < 2; ++iter) {
 			tmp[0] = pts[0];

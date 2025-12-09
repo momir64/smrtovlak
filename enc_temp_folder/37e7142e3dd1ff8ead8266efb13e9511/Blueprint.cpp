@@ -229,69 +229,32 @@ void Blueprint::drawDrawing() {
 
 	std::vector<Coords> pts;
 	pts.reserve(drawing.size());
-	for (auto& p : drawing) {
-		float x = b.x + p.x * b.width;
-		float y = std::max(TOP, window.getHeight() - (MARGIN + p.y * unit));
-		pts.emplace_back(x, y);
-	}
+	for (auto& p : drawing)
+		pts.emplace_back(b.x + p.x * b.width,
+			std::max(TOP, window.getHeight() - (MARGIN + p.y * unit)));
 
-	if (!drawingActive) {
-		line.draw(pts, Color(255, 255, 255), 6);
-		return;
-	}
-
-	float dash = 20.0f;
-	float gap = 15.0f;
-
-	float remaining = dash;
-	bool drawingDash = true;
-
-	std::vector<Coords> dashPts;
+	float dash = 20, gap = 15;
 
 	for (size_t i = 0; i + 1 < pts.size(); i++) {
-		Coords A = pts[i];
-		Coords B = pts[i + 1];
+		Coords A = pts[i], B = pts[i + 1];
+		float dx = B.x - A.x, dy = B.y - A.y;
+		float len = std::hypot(dx, dy);
+		if (!len) continue;
 
-		float dx = B.x - A.x;
-		float dy = B.y - A.y;
-		float len = std::sqrt(dx * dx + dy * dy);
-		if (len == 0) continue;
+		float ux = dx / len, uy = dy / len, d = 0;
+		bool on = true;
 
-		float ux = dx / len;
-		float uy = dy / len;
-
-		float travelled = 0.0f;
-
-		while (travelled < len) {
-			float step = std::min(remaining, len - travelled);
-
-			Coords S(A.x + ux * travelled, A.y + uy * travelled);
-			Coords E(A.x + ux * (travelled + step), A.y + uy * (travelled + step));
-
-			if (drawingDash) {
-				if (dashPts.empty()) dashPts.emplace_back(S);
-				dashPts.emplace_back(E);
-			}
-
-			travelled += step;
-			remaining -= step;
-
-			if (remaining == 0) {
-				if (drawingDash && dashPts.size() >= 2)
-					line.draw(dashPts, Color(255, 255, 255), 5);
-
-				dashPts.clear();
-
-				drawingDash = !drawingDash;
-				remaining = drawingDash ? dash : gap;
-			}
+		while (d < len) {
+			float d2 = std::min(d + (on ? dash : gap), len);
+			if (on)
+				line.draw({ {A.x + ux * d, A.y + uy * d},
+							{A.x + ux * d2, A.y + uy * d2} },
+					Color(255, 255, 255), 5);
+			d = d2;
+			on = !on;
 		}
 	}
-
-	if (drawingDash && dashPts.size() >= 2)
-		line.draw(dashPts, Color(255, 255, 255), 5);
 }
-
 
 void Blueprint::saveTrack() {
 	std::ofstream file(trackPath);
