@@ -16,5 +16,5 @@ public:
 	Image(WindowManager& window, const std::string& path);
 	~Image();
 
-	void draw(Bounds bounds);
+	void draw(Bounds bounds, bool widthRelative = true);
 };

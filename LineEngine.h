@@ -12,5 +12,5 @@ class LineEngine {
 
 public:
 	LineEngine(WindowManager& window);
-	void draw(const std::vector<Coords>& points, const Color& color, float width);
+	void draw(const std::vector<Coords>& points, const Color& color, float width, float brightAmount = 0.f, float angleDeg = 0.f, float pixelSize = 0.0f);
 };

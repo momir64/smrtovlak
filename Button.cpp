@@ -99,5 +99,5 @@ void Button::draw() {
 	float py = ny + nh * (1.f - scale) / 2.f;
 	float pw = nw * scale;
 
-	images[selected].draw(Bounds(px, py, pw));
+	images[selected].draw(Bounds(px, py, pw), false);
 }

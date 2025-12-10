@@ -38,11 +38,13 @@ Image::~Image() {
 	glDeleteBuffers(1, &vbo);
 }
 
-void Image::draw(Bounds bounds) {
-	float height = bounds.width * (float(imgH) / float(imgW)) * (float(window.getWidth()) / float(window.getHeight()));
+void Image::draw(Bounds bounds, bool widthRelative) {
+	float aspectRatio = (float(window.getWidth()) / float(window.getHeight()));
+	float height = bounds.width * (float(imgH) / float(imgW)) * aspectRatio;
+	float y = widthRelative ? bounds.y * aspectRatio : bounds.y;
 
 	shader.use();
-	shader.setVec2("uPos", bounds.x, bounds.y);
+	shader.setVec2("uPos", bounds.x, y);
 	shader.setVec2("uSize", bounds.width, height);
 	shader.setInt("tex", 0);
 

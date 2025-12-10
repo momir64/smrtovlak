@@ -19,7 +19,7 @@ class Button : public MouseListener {
 	Color edge;
 
 	bool pressed = false;
-	int selected = 1;
+	int selected = 0;
 
 	GLuint vao = 0, vbo = 0;
 	ButtonListener* listener = nullptr;

@@ -181,5 +181,6 @@ void WindowManager::keyboardCallback(GLFWwindow& window, int key, int scancode, 
 	if (key == GLFW_KEY_F && action == GLFW_PRESS)
 		setFullscreen(!fullscreen);
 	else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		exit(0);
+		setFullscreen(!fullscreen);
+		//exit(0);
 }

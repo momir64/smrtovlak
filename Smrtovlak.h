@@ -11,8 +11,8 @@
 #include <vector>
 
 class Smrtovlak : public ResizeListener, public ButtonListener {
-	std::vector<Coords> tracks;
 	WindowManager window;
+	std::vector<Coords> tracks;
 	Simulation simulation;
 	TextEngine signature;
 	Blueprint blueprint;

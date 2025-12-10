@@ -10,7 +10,7 @@
 
 Smrtovlak::Smrtovlak() :
 	window(1000, 800, 760, 300, "Smrtovlak", "assets/icons/simulation.png", false),
-	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window), blueprint(window, tracks, "smrtovlak.track"),
+	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window, tracks), blueprint(window, tracks, "smrtovlak.track"),
 	button(window, Bounds(46, 20, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
 		0.15f, 16, std::vector<std::string>{ "assets/icons/blueprint.png", "assets/icons/simulation.png"}) {
 }
@@ -27,7 +27,7 @@ void Smrtovlak::draw() {
 	else
 		simulation.draw();
 
-	signature.draw(L"Momir Stanišić SV39/2022", Bounds(46, 72, 18));
+	signature.draw(L"Momir Stanišić SV39/2022", Bounds(46, 68, 18));
 	button.draw();
 
 	window.swapBuffers();
@@ -35,8 +35,8 @@ void Smrtovlak::draw() {
 }
 
 int Smrtovlak::run() {
-	//Color background(69, 164, 212);
-	Color background = 1 ? Color(10, 84, 153) : Color(69, 164, 212);
+	//Color background = 1 ? Color(10, 84, 153) : Color(69, 164, 212);
+	Color background(69, 164, 212);
 	glClearColor(background.red, background.green, background.blue, 1.0f);
 	window.addMouseListener(&blueprint);
 	window.setResizeListener(this);
