@@ -156,6 +156,7 @@
     <ClInclude Include="Smrtovlak.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="TextEngine.h" />
+    <ClInclude Include="Train.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
@@ -170,6 +171,7 @@
     <ClCompile Include="Simulation.cpp" />
     <ClCompile Include="Smrtovlak.cpp" />
     <ClCompile Include="TextEngine.cpp" />
+    <ClCompile Include="Train.cpp" />
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

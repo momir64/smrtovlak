@@ -12,6 +12,7 @@
 
 class Smrtovlak : public ResizeListener, public ButtonListener {
 	WindowManager window;
+	std::vector<PointStats> points;
 	std::vector<Coords> tracks;
 	Simulation simulation;
 	TextEngine signature;

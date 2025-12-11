@@ -10,6 +10,7 @@
 
 class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     int hoveringPulse = 0, startingPulse = 0;
+    std::vector<PointStats>& points;
     std::vector<Coords>& drawing;
     bool drawingActive = true;
 	std::string trackPath;
@@ -33,10 +34,11 @@ class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     void drawGrid();
 
     void finalizeAndCloseLine();
+    void computePoints();
     void saveTrack();
 
 public:
-    Blueprint(WindowManager& window, std::vector<Coords>& tracks, const std::string& trackPath);
+    Blueprint(WindowManager& window, std::vector<Coords>& tracks, std::vector<PointStats>& points, const std::string& trackPath);
 
     void loadTrack();
     void draw();

@@ -3,6 +3,7 @@
 #include "DataClasses.h"
 #include "LineEngine.h"
 #include "Image.h"
+#include "Train.h"
 #include <vector>
 
 class Simulation {
@@ -11,14 +12,14 @@ class Simulation {
 	Image background, platform;
 	WindowManager& window;
 	LineEngine lineEngine;
+	Train train;
 
-	Bounds trackBounds() const;
-
-	void drawLine(std::vector<Coords> line, const Color& color, float width, float gradient, float gradientAngle, float pixelSize);
 	void drawScaffolding();
 
 public:
-	Simulation(WindowManager& window, std::vector<Coords>& tracks);
+	Simulation(WindowManager& window, std::vector<Coords>& tracks, std::vector<PointStats>& points);
+	void drawLine(std::vector<Coords> line, const Color& color, float width, float gradient, float gradientAngle, float pixelSize, bool includeBottom = true);
+	Bounds trackBounds() const;
 	void draw();
 };
 

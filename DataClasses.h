@@ -9,16 +9,6 @@ public:
 	Color(int red, int green, int blue);
 };
 
-class Bounds {
-public:
-	float x;
-	float y;
-	float width;
-	float height;
-
-	Bounds(float x, float y, float width, float height = 0);
-};
-
 class Coords {
 public:
 	float x;
@@ -27,10 +17,31 @@ public:
 	Coords(float x = 0, float y = 0);
 };
 
+class Bounds : public Coords {
+public:
+	float x;
+	float y;
+	float width;
+	float height;
+	float angle;
+	bool flip;
+
+	Bounds(float x, float y, float width, float height = 0, float angle = 0, bool flip = false);
+	Bounds(Coords coords);
+};
+
 class Size {
 public:
 	float width;
 	float height;
 
 	Size(float width = 0, float height = 0);
+};
+
+class PointStats {
+public:
+	bool firstHalf = false;
+	float distance = 0;
+	float angle = 0;
+	Coords crds;
 };

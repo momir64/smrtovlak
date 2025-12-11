@@ -17,7 +17,7 @@
 namespace {
 	constexpr float MARGIN = 50.f, TOP = 150.f;
 
-	constexpr float PLATFORM_WIDTH_RATIO = 0.28f, PLATFORM_HEIGHT_RATIO = 0.04f;
+	constexpr float PLATFORM_WIDTH_RATIO = 0.32f, PLATFORM_HEIGHT_RATIO = 0.04f;
 	constexpr float PLATFORM_BASE_STEP = 3.f, PLATFORM_STEP_RATIO = 0.003f;
 	constexpr float PLATFORM_DIAG_RATIO = 0.2f, PLATFORM_MIN_DIAG = 10.f;
 	constexpr float PLATFORM_BORDER_MAX = 7.f, PLATFORM_LINE_MAX = 4.f;
@@ -34,8 +34,8 @@ namespace {
 	inline float deg2rad(float d) { return d * (std::numbers::pi_v<float> / 180.f); }
 }
 
-Blueprint::Blueprint(WindowManager& win, std::vector<Coords>& tracks, const std::string& trackPath) :
-	window(win), drawing(tracks), pulse(win), line(win), trackPath(trackPath),
+Blueprint::Blueprint(WindowManager& win, std::vector<Coords>& tracks, std::vector<PointStats>& points, const std::string& trackPath) :
+	window(win), drawing(tracks), points(points), pulse(win), line(win), trackPath(trackPath),
 	trash(win, Bounds(166, 20, 100, 0), Color(183, 198, 215), Color(255, 255, 255),
 		0.15f, 16, { "assets/icons/trash.png", "assets/icons/trash.png" }) {
 	window.addKeyboardListener(this);
@@ -123,6 +123,7 @@ void Blueprint::mouseCallback(double x, double y, int button, int action, int) {
 		drawingActive = !finishedOpposite;
 		if (finishedOpposite) finalizeAndCloseLine(); else drawing.clear();
 		startingPulse = 0;
+		computePoints();
 		saveTrack();
 	}
 }
@@ -309,6 +310,7 @@ void Blueprint::loadTrack() {
 		drawing.emplace_back(x, y);
 	if (!drawing.empty())
 		drawingActive = false;
+	computePoints();
 }
 
 static inline void addHermite(std::vector<Coords>& out, const Coords& p0, const Coords& t0, const Coords& p1, const Coords& t1, int steps) {
@@ -394,6 +396,123 @@ void Blueprint::finalizeAndCloseLine() {
 	}
 
 	drawing.swap(out);
+
+	std::vector<float> seglen;
+	seglen.reserve(drawing.size());
+	float total = 0.f;
+
+	for (size_t i = 1; i < drawing.size(); i++) {
+		float dx = drawing[i].x - drawing[i - 1].x;
+		float dy = drawing[i].y - drawing[i - 1].y;
+		float d = std::sqrt(dx * dx + dy * dy);
+		seglen.push_back(d);
+		total += d;
+	}
+
+	if (total <= 0.f) return;
+
+	float spacing = total / (drawing.size() - 1);
+
+	std::vector<Coords> res;
+	res.reserve(drawing.size());
+	res.push_back(drawing.front());
+
+	float distTarget = spacing;
+	float distAccum = 0.f;
+	size_t idx = 1;
+
+	while (idx < drawing.size()) {
+		float dx = drawing[idx].x - drawing[idx - 1].x;
+		float dy = drawing[idx].y - drawing[idx - 1].y;
+		float d = std::sqrt(dx * dx + dy * dy);
+
+		if (distAccum + d >= distTarget) {
+			float t = (distTarget - distAccum) / d;
+			res.push_back({ drawing[idx - 1].x + dx * t,
+							drawing[idx - 1].y + dy * t });
+			distTarget += spacing;
+		} else {
+			distAccum += d;
+			idx++;
+		}
+	}
+
+	res.push_back(drawing.back());
+	drawing.swap(res);
+}
+
+void Blueprint::computePoints() {
+	points.clear();
+	points.reserve(drawing.size());
+	if (drawing.empty()) return;
+
+	float minX = drawing[0].x, maxX = drawing[0].x;
+	for (auto& t : drawing) {
+		if (t.x < minX) minX = t.x;
+		if (t.x > maxX) maxX = t.x;
+	}
+
+	size_t idxMin = 0, idxMax = 0;
+	for (size_t i = 1; i < drawing.size(); i++) {
+		if (drawing[i].x < drawing[idxMin].x) idxMin = i;
+		if (drawing[i].x > drawing[idxMax].x) idxMax = i;
+	}
+
+	const float PI = std::numbers::pi_v<float>;
+	const float TWO_PI = 2.f * PI;
+
+	std::vector<float> angRad(drawing.size());
+
+	for (size_t i = 0; i < drawing.size(); i++) {
+		Coords a = drawing[i];
+		float dx, dy;
+
+		if (i + 1 < drawing.size()) {
+			Coords b = drawing[i + 1];
+			dx = b.x - a.x;
+			dy = b.y - a.y;
+		} else {
+			Coords p = drawing[i - 1];
+			dx = a.x - p.x;
+			dy = a.y - p.y;
+		}
+
+		angRad[i] = std::atan2(dy, dx);
+	}
+
+	for (size_t i = 1; i < angRad.size(); i++) {
+		float d = angRad[i] - angRad[i - 1];
+		if (d > PI)  angRad[i] -= TWO_PI;
+		if (d < -PI) angRad[i] += TWO_PI;
+	}
+
+	std::vector<float> angSm(angRad.size());
+	const int S = 5;
+
+	for (size_t i = 0; i < angRad.size(); i++) {
+		size_t lo = (i > (size_t)S) ? i - S : 0;
+		size_t hi = std::min(angRad.size() - 1, i + S);
+		float sum = 0.f;
+		for (size_t k = lo; k <= hi; k++) sum += angRad[k];
+		angSm[i] = sum / float(hi - lo + 1);
+	}
+
+	float accum = 0.f;
+
+	for (size_t i = 0; i < drawing.size(); i++) {
+		Coords a = drawing[i];
+		Coords b = (i + 1 < drawing.size()) ? drawing[i + 1] : a;
+		float dx = b.x - a.x, dy = b.y - a.y;
+		float dist = std::sqrt(dx * dx + dy * dy);
+
+		bool firstHalf = (i < idxMin) || (i > idxMax);
+
+		float angle = angSm[i] * 180.f / PI;
+		if (firstHalf) angle += 180.f;
+
+		points.push_back({ firstHalf, accum, angle, a });
+		accum += dist;
+	}
 }
 
 void Blueprint::draw() {

@@ -13,8 +13,10 @@ Button::Button(WindowManager& window, Bounds bounds, Color background, Color edg
 	window(window), shader("shaders/button.vert", "shaders/button.frag") {
 
 	images.reserve(imagePaths.size());
-	for (auto& p : imagePaths)
-		images.emplace_back(window, p);
+	for (auto& p : imagePaths) {
+		std::vector<std::string> imagePath = { p };
+		images.emplace_back(window, imagePath);
+	}
 
 	float quad[] = { 0,0, 1,0, 1,1, 0,1 };
 
@@ -63,10 +65,10 @@ void Button::mouseCallback(double x, double y, int button, int action, int mods)
 	if (action == GLFW_RELEASE) {
 		if (pressed && inside) {
 			selected++;
-			if (selected >= images.size()) 
+			if (selected >= images.size())
 				selected = 0;
 
-			if (listener) 
+			if (listener)
 				listener->buttonChanged(*this, selected);
 		}
 		pressed = false;
@@ -99,5 +101,5 @@ void Button::draw() {
 	float py = ny + nh * (1.f - scale) / 2.f;
 	float pw = nw * scale;
 
-	images[selected].draw(Bounds(px, py, pw), false);
+	images[selected].draw(Bounds(px, py, pw), { true }, false, 0, 0, false);
 }
