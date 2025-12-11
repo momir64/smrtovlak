@@ -359,6 +359,11 @@ std::vector<float> Train::getLayers(int carIdx) {
 }
 
 void Train::draw() {
+	if (tracks.size() != pointsLength) {
+		pointsLength = tracks.size();
+		reset();
+	}
+
 	if (!tracks.empty()) {
 		updateDistance();
 

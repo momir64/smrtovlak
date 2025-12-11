@@ -23,6 +23,7 @@ class Train : public KeyboardListener, MouseListener {
 	WindowManager& window;
 	LineEngine lineEngine;
 	int noCars, mode = 0;
+	int pointsLength = 0;
 	Image* carImage;
 
 	std::vector<float> getLayers(int carIdx);
