@@ -10,7 +10,7 @@
 
 Smrtovlak::Smrtovlak() :
 	window(1000, 800, 760, 300, "Smrtovlak", "assets/icons/simulation.png", false),
-	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window, tracks, points), blueprint(window, tracks, points, "smrtovlak.track"),
+	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window, tracks, points), blueprint(window, selected, tracks, points, "smrtovlak.track"),
 	button(window, Bounds(46, 20, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
 		0.15f, 16, std::vector<std::string>{ "assets/icons/blueprint.png", "assets/icons/simulation.png"}) {
 }
@@ -63,4 +63,5 @@ int Smrtovlak::run() {
 void Smrtovlak::buttonChanged(Button& button, int selected) {
 	Color background = selected ? Color(10, 84, 153) : Color(69, 164, 212);
 	glClearColor(background.red, background.green, background.blue, 1.0f);
+	this->selected = selected;
 }

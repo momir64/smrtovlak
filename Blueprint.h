@@ -4,6 +4,7 @@
 #include "DataClasses.h"
 #include "PulseEngine.h"
 #include "LineEngine.h"
+#include "GLFW/glfw3.h"
 #include "Button.h"
 #include <vector>
 #include <string>
@@ -17,6 +18,7 @@ class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     WindowManager& window;
     PulseEngine pulse;
     LineEngine line;
+    int& selected ;
     Button trash;
 
     Bounds platformBounds() const;
@@ -38,7 +40,7 @@ class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     void saveTrack();
 
 public:
-    Blueprint(WindowManager& window, std::vector<Coords>& tracks, std::vector<PointStats>& points, const std::string& trackPath);
+    Blueprint(WindowManager& window, int& selected, std::vector<Coords>& tracks, std::vector<PointStats>& points, const std::string& trackPath);
 
     void loadTrack();
     void draw();

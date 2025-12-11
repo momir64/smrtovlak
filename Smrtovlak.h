@@ -18,6 +18,7 @@ class Smrtovlak : public ResizeListener, public ButtonListener {
 	TextEngine signature;
 	Blueprint blueprint;
 	Button button;
+	int selected;
 
 public:
 	Smrtovlak();

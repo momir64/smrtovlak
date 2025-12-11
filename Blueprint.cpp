@@ -13,7 +13,6 @@
 #include <vector>
 #include <string>
 #include <cmath>
-#include <iostream>
 
 namespace {
 	constexpr float MARGIN = 50.f, TOP = 150.f;
@@ -35,8 +34,8 @@ namespace {
 	inline float deg2rad(float d) { return d * (std::numbers::pi_v<float> / 180.f); }
 }
 
-Blueprint::Blueprint(WindowManager& win, std::vector<Coords>& tracks, std::vector<PointStats>& points, const std::string& trackPath) :
-	window(win), drawing(tracks), points(points), pulse(win), line(win), trackPath(trackPath),
+Blueprint::Blueprint(WindowManager& win, int& selected, std::vector<Coords>& tracks, std::vector<PointStats>& points, const std::string& trackPath) :
+	window(win), selected(selected), drawing(tracks), points(points), pulse(win), line(win), trackPath(trackPath),
 	trash(win, Bounds(166, 20, 100, 0), Color(183, 198, 215), Color(255, 255, 255),
 		0.15f, 16, { "assets/icons/trash.png", "assets/icons/trash.png" }) {
 	window.addKeyboardListener(this);
@@ -97,7 +96,7 @@ int Blueprint::detectPulse(float mx, float my) const {
 }
 
 void Blueprint::keyboardCallback(GLFWwindow&, int key, int, int action, int) {
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_R && action == GLFW_PRESS && selected) {
 		drawingActive = true;
 		drawing.clear();
 		saveTrack();
@@ -366,7 +365,7 @@ static inline void smoothChaikin(const std::vector<Coords>& in, std::vector<Coor
 }
 
 void Blueprint::finalizeAndCloseLine() {
-	if (drawing.size() < 16) {
+	if (drawing.size() < 32) {
 		drawing.clear();
 		return;
 	}
@@ -389,7 +388,10 @@ void Blueprint::finalizeAndCloseLine() {
 
 	drawing.erase(drawing.begin() + R + 1, drawing.end());
 	drawing.erase(drawing.begin(), drawing.begin() + L);
-	if (drawing.size() < 2) return;
+	if (drawing.size() < 32) {
+		drawing.clear();
+		return;
+	}
 
 	Coords A = drawing.front();
 	Coords B = drawing.back();
@@ -473,7 +475,7 @@ void Blueprint::finalizeAndCloseLine() {
 }
 
 void Blueprint::computePoints() {
-	if (drawing.size() < 16) {
+	if (drawing.size() < 32) {
 		drawing.clear();
 		return;
 	}
@@ -528,7 +530,7 @@ void Blueprint::computePoints() {
 	}
 
 	std::vector<float> angSm(angRad.size());
-	const int S = 5;
+	const int S = 19;
 
 	for (size_t i = 0; i < angRad.size(); i++) {
 		size_t lo = (i > (size_t)S) ? i - S : 0;

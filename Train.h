@@ -7,6 +7,7 @@
 #include "Image.h"
 #include <vector>
 #include <string>
+#include <chrono>
 
 class Simulation;
 
@@ -18,6 +19,8 @@ public:
 };
 
 class Train : public KeyboardListener, MouseListener {
+	float currentDistance, stopDistance, currentSpeed = 0.f, preStopSpeed = 0.f, sleep = 0.f;
+	std::chrono::steady_clock::time_point lastUpdateTime;
 	std::vector<Character> characters;
 	std::vector<PointStats>& points;
 	std::vector<Coords>& tracks;
@@ -34,7 +37,8 @@ class Train : public KeyboardListener, MouseListener {
 	Coords toScreen(Coords point) const;
 	PointStats closestPoint(float dist);
 	int seatHit(float x, float y);
-
+	void updateDistance();
+	void reset();
 
 public:
 	Train(WindowManager& window, Simulation& simulation, std::vector<Coords>& tracks, std::vector<PointStats>& points,
