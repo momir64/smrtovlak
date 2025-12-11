@@ -13,6 +13,7 @@ Smrtovlak::Smrtovlak() :
 	signature(window, "assets/fonts/jersey.ttf", 256), simulation(window, tracks, points), blueprint(window, selected, tracks, points, "smrtovlak.track"),
 	button(window, Bounds(46, 20, 100), Color(183, 198, 215), Color(1.0f, 1.0f, 1.0f),
 		0.15f, 16, std::vector<std::string>{ "assets/icons/blueprint.png", "assets/icons/simulation.png"}) {
+	window.setCursor("assets/icons/rails.png");
 }
 
 void Smrtovlak::resizeCallback(GLFWwindow& window) {
@@ -61,6 +62,7 @@ int Smrtovlak::run() {
 }
 
 void Smrtovlak::buttonChanged(Button& button, int selected) {
+	window.setCursor(selected ? "assets/icons/pencil.png" : "assets/icons/rails.png", !selected);
 	Color background = selected ? Color(10, 84, 153) : Color(69, 164, 212);
 	glClearColor(background.red, background.green, background.blue, 1.0f);
 	this->selected = selected;

@@ -11,7 +11,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-
 WindowManager::WindowManager(int width, int height, int minWidth, int minHeight, const std::string& title, const std::string& iconPath, bool fullscreen) {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -161,6 +160,14 @@ void WindowManager::addMouseListener(MouseListener* listener) {
 	mouseListeners.push_back(listener);
 }
 
+void WindowManager::setCursor(const std::string& cursorPath, bool center) {
+	GLFWimage icon{};
+	icon.pixels = stbi_load(cursorPath.c_str(), &icon.width, &icon.height, 0, 4);
+	GLFWcursor* cursor = glfwCreateCursor(&icon, center ? icon.width / 2 : 0, center ? icon.height / 2 : icon.height);
+	glfwSetCursor(window, cursor);
+	stbi_image_free(icon.pixels);
+}
+
 int WindowManager::getHeight() const {
 	return height;
 }
@@ -182,5 +189,5 @@ void WindowManager::keyboardCallback(GLFWwindow& window, int key, int scancode, 
 		setFullscreen(!fullscreen);
 	else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		setFullscreen(!fullscreen);  // TODO: should be exit(0);
-		//exit(0);
+	//exit(0);
 }

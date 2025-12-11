@@ -18,7 +18,7 @@ class Blueprint : public MouseListener, KeyboardListener, ButtonListener {
     WindowManager& window;
     PulseEngine pulse;
     LineEngine line;
-    int& selected ;
+    int& selected;
     Button trash;
 
     Bounds platformBounds() const;

@@ -25,6 +25,7 @@ class WindowManager : public KeyboardListener {
 public:
 	WindowManager(int width, int height, int minWidth, int minHeight, const std::string& title, const std::string& iconPath, bool fullscreen);
 	void keyboardCallback(GLFWwindow& window, int key, int scancode, int action, int mods) override;
+	void setCursor(const std::string& cursorPath, bool center = true);
 	void addKeyboardListener(KeyboardListener* listener);
 	void setResizeListener(ResizeListener* listener);
 	void addMouseListener(MouseListener* listener);
