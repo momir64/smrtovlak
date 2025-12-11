@@ -16,8 +16,8 @@ namespace {
 	constexpr float CONNECTION_HEIGHT = 0.016f, CONNECTION_WIDTH = 3.8f, CONNECTION_RATIO = 0.6f;
 	constexpr float BELT_HEIGHT_OFFSET = 0.4f, BELT_WIDTH = 0.009f, BELT_HEIGHT = 0.011f;
 	constexpr float TRAIN_START_OFFSET = 0.045f, TRAIN_TRACKS_OFFSET = 0.006f;
+	constexpr float APPEARANCE_SPEED = 0.013f;
 	constexpr float PASSENGER_OFFSET = 0.15f;
-	constexpr float APPEARANCE_SPEED = 0.02f;
 
 	constexpr float SLOWDOWN_DISTANCE = 0.08f, FINISH_SLOWDOWN_DISTANCE = 0.3f, FINISH_SLOWDOWN_DISTANCE_SICK = 0.15f, FINISHED_DISTANCE = 0.0002f;
 	constexpr float TRAIN_MIN_SPEED = 0.11f, TRAIN_MAX_SPEED = 0.58f, TRAIN_MAX_SPEED_SICK = 0.1f;
@@ -45,37 +45,15 @@ Train::Train(WindowManager& window, Simulation& simulation, std::vector<Coords>&
 	window.addMouseListener(this);
 }
 
-void Train::keyboardCallback(GLFWwindow& window, int key, int scancode, int action, int mods) {
-	if (action != GLFW_PRESS) return;
-
-	if (key == GLFW_KEY_SPACE && mode == 0) {
-		for (int i = 0; i < characters.size(); i++) {
-			if (!characters[i].character) {
-				characters[i].character = APPEARANCE_SPEED;
-				break;
-			}
-		}
-	} else if (key == GLFW_KEY_ENTER && mode == 0) {
-		int count = 0;
-		for (int i = 0; i < characters.size(); i++) {
-			if (characters[i].character) {
-				if (!characters[i].belt) return;
-				count++;
-			}
-		}
-		if (count)
-			mode = 1;
-	} else if (key == GLFW_KEY_R) {
-		reset();
-	} else if (key >= GLFW_KEY_1 && key <= GLFW_KEY_8 && mode == 1) {
-		int number = key - GLFW_KEY_1;
-		if (number < characters.size() && characters[number].character > 0) {
-			stopDistance = currentDistance + SLOWDOWN_DISTANCE;
-			characters[number].sick = APPEARANCE_SPEED;
-			mode = 2;
-		}
+void Train::reset() {
+	currentDistance = -TRAIN_START_OFFSET;
+	currentSpeed = 0;
+	mode = 0;
+	for (auto& chr : characters) {
+		chr.character = 0;
+		chr.sick = 0;
+		chr.belt = 0;
 	}
-
 }
 
 int Train::seatHit(float x, float y) {
@@ -97,6 +75,57 @@ int Train::seatHit(float x, float y) {
 			characters[j * 2 + 1].character) return j * 2 + 1;
 	}
 	return -1;
+}
+
+void Train::mouseCallback(double x, double y, int button, int action, int mods) {
+	if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
+
+	int hit = seatHit(x, y);
+	if (hit > -1 && characters[hit].belt <= 0.f && mode == 0)
+		characters[hit].belt = APPEARANCE_SPEED;
+
+	if (hit > -1 && characters[hit].character > 0.f && mode == 4) {
+		characters[hit].character = -1.f;
+		if (characters[hit].sick > 0.f)
+			characters[hit].sick = -1.f;
+		bool allGone = true;
+		for (auto& chr : characters)
+			allGone &= chr.character <= 0.f;
+		if (allGone)
+			reset();
+	}
+}
+
+void Train::keyboardCallback(GLFWwindow& window, int key, int scancode, int action, int mods) {
+	if (action != GLFW_PRESS) return;
+
+	if (key == GLFW_KEY_SPACE && mode == 0) {
+		for (int i = 0; i < characters.size(); i++) {
+			if (characters[i].character <= 0.f) {
+				characters[i].character = APPEARANCE_SPEED;
+				break;
+			}
+		}
+	} else if (key == GLFW_KEY_ENTER && mode == 0) {
+		int count = 0;
+		for (int i = 0; i < characters.size(); i++) {
+			if (characters[i].character > 0.f) {
+				if (characters[i].belt <= 0.f) return;
+				count++;
+			}
+		}
+		if (count)
+			mode = 1;
+	} else if (key == GLFW_KEY_R) {
+		reset();
+	} else if (key >= GLFW_KEY_1 && key <= GLFW_KEY_8 && mode == 1) {
+		int number = key - GLFW_KEY_1;
+		if (number < characters.size() && characters[number].character > 0) {
+			stopDistance = currentDistance + SLOWDOWN_DISTANCE;
+			characters[number].sick = APPEARANCE_SPEED;
+			mode = 2;
+		}
+	}
 }
 
 void Train::updateDistance() {
@@ -141,6 +170,8 @@ void Train::updateDistance() {
 				if (remaining <= FINISHED_DISTANCE) {
 					currentSpeeds[i] = 0.0f;
 					currentDistance = endDist;
+					for (auto& chr : characters)
+						if (chr.belt > 0) chr.belt = -1.f;
 					mode = 4;
 					return;
 				}
@@ -170,7 +201,7 @@ void Train::updateDistance() {
 		if (remaining <= FINISHED_DISTANCE) {
 			currentDistance = stopDistance;
 			currentSpeed = 0.0f;
-			sleep = 4; // TODO: should be 10
+			sleep = 10;
 			mode = 3;
 		}
 		currentDistance += currentSpeed * dt;
@@ -189,6 +220,8 @@ void Train::updateDistance() {
 			if (remaining <= FINISHED_DISTANCE) {
 				currentSpeed = 0.0f;
 				currentDistance = endDist;
+				for (auto& chr : characters)
+					if (chr.belt > 0) chr.belt = -1.f;
 				mode = 4;
 				return;
 			}
@@ -198,25 +231,6 @@ void Train::updateDistance() {
 
 		currentDistance += currentSpeed * dt;
 	}
-}
-
-void Train::reset() {
-	currentDistance = -TRAIN_START_OFFSET;
-	currentSpeed = 0;
-	mode = 0;
-	for (auto& chr : characters) {
-		chr.character = 0;
-		chr.sick = 0;
-		chr.belt = 0;
-	}
-}
-
-void Train::mouseCallback(double x, double y, int button, int action, int mods) {
-	if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
-
-	int hit = seatHit(x, y);
-	if (hit > -1 && !characters[hit].belt)
-		characters[hit].belt = APPEARANCE_SPEED;
 }
 
 inline static Coords edgePoint(Bounds b, float R, float angle, bool right, float pivotHeight) {
