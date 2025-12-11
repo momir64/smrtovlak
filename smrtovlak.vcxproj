@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="Blueprint.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="Character.h" />
     <ClInclude Include="DataClasses.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="InputListener.h" />
@@ -162,6 +163,7 @@
   <ItemGroup>
     <ClCompile Include="Blueprint.cpp" />
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Character.cpp" />
     <ClCompile Include="DataClasses.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="LineEngine.cpp" />

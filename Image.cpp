@@ -45,15 +45,30 @@ Image::~Image() {
 	glDeleteBuffers(1, &vbo);
 }
 
-void Image::draw(Bounds bounds, const std::vector<float>& opacity, bool flipX, float angle, float pivotHeight, bool widthRelative) {
+void Image::draw(Bounds bounds, const std::vector<float>& opacity, bool flipX, float angle, float pivotHeight, bool widthRelative, long long frame) {
 	float aspectRatio = float(window.getWidth()) / float(window.getHeight());
-	float height = bounds.width * (float(imgH) / float(imgW)) * aspectRatio;
 	float y = widthRelative ? bounds.y * aspectRatio : bounds.y;
+	int frameCount = (imgH > 0) ? (imgW / imgH) : 1;
+	bool isSprite = (frame != -1 && frameCount > 0);
+
+	float height = bounds.width * aspectRatio;
+	if (!isSprite)
+		height *= float(imgH) / float(imgW);
+
+	int index = 0;
+	if (isSprite) {
+		long long f = frame % frameCount;
+		if (f < 0) f += frameCount;
+		index = int(f);
+	}
 
 	shader.use();
 	shader.setVec2("uSize", bounds.width, height);
 	shader.setFloat("uPivotHeight", pivotHeight);
+	shader.setInt("uSprite", isSprite ? 1 : 0);
+	shader.setInt("uFrameCount", frameCount);
 	shader.setInt("uFlipX", flipX ? 1 : 0);
+	shader.setInt("uFrameIndex", index);
 	shader.setVec2("uPos", bounds.x, y);
 	shader.setFloat("uAngle", angle);
 	shader.setInt("tex", 0);

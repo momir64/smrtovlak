@@ -3,10 +3,12 @@
 #include "DataClasses.h"
 #include "Simulation.h"
 #include "GLFW/glfw3.h"
+#include "Character.h"
 #include <algorithm>
 #include "Image.h"
 #include <numbers>
 #include <chrono>
+#include <random>
 #include <vector>
 #include <string>
 #include <cmath>
@@ -31,9 +33,14 @@ Train::Train(WindowManager& window, Simulation& simulation, std::vector<Coords>&
 	lineEngine(window), window(window), simulation(simulation), tracks(tracks), points(points),
 	BOTTOM_RATIO(bottomRatio), MARGIN(margin), noCars(noCars), characters(characters.size()) {
 	std::vector<std::string> imagePaths = { "assets/train/seats.png" };
-	for (std::string ext : {".png", "_sick.png"})
-		for (int i = 0; i < characters.size(); i++)
+	for (std::string ext : {".png", "_sick.png"}) {
+		for (int i = 0; i < characters.size(); i++) {
 			imagePaths.push_back("assets/characters/" + characters[i] + "/" + (!(i % 2) ? "right" : "left") + ext);
+			this->characters[i].walkImage = new Image(window, { "assets/characters/" + characters[i] + "/walk.png" });
+			this->characters[i].idleImage = new Image(window, { "assets/characters/" + characters[i] + "/idle.png" });
+			this->characters[i].idx = i;
+		}
+	}
 	imagePaths.insert(imagePaths.end(), { "assets/train/belt_left.png",
 										  "assets/train/belt_right.png",
 										  "assets/train/cart_front.png",
@@ -45,12 +52,41 @@ Train::Train(WindowManager& window, Simulation& simulation, std::vector<Coords>&
 	window.addMouseListener(this);
 }
 
+void Train::shuffle() {
+	std::vector<Character> even, odd;
+	even.reserve(characters.size() / 2);
+	odd.reserve(characters.size() / 2);
+
+	for (size_t i = 0; i < characters.size(); i++) {
+		if (i % 2) odd.push_back(characters[i]);
+		else       even.push_back(characters[i]);
+	}
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::shuffle(even.begin(), even.end(), gen);
+	std::shuffle(odd.begin(), odd.end(), gen);
+
+	size_t ei = 0, oi = 0;
+	for (size_t i = 0; i < characters.size(); i++) {
+		if (i % 2) characters[i] = odd[oi++];
+		else       characters[i] = even[ei++];
+	}
+}
+
 void Train::reset() {
 	currentDistance = -TRAIN_START_OFFSET;
 	currentSpeed = 0;
 	mode = 0;
+
+	shuffle();
+
 	for (auto& chr : characters) {
+		chr.position = -1.f;
 		chr.character = 0;
+		chr.walker = 0;
+		chr.mode = 0;
+		chr.idle = 0;
 		chr.sick = 0;
 		chr.belt = 0;
 	}
@@ -77,6 +113,12 @@ int Train::seatHit(float x, float y) {
 	return -1;
 }
 
+float Train::seatFor(int passenger) {
+	PointStats start = closestPoint(-TRAIN_START_OFFSET);
+	float px = start.crds.x - CAR_WIDTH * PASSENGER_OFFSET + float(int(passenger / 2)) * CAR_WIDTH * 0.97f;
+	return passenger % 2 ? px + CAR_WIDTH * PASSENGER_OFFSET * 2.f : px;
+}
+
 void Train::mouseCallback(double x, double y, int button, int action, int mods) {
 	if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS) return;
 
@@ -85,14 +127,10 @@ void Train::mouseCallback(double x, double y, int button, int action, int mods) 
 		characters[hit].belt = APPEARANCE_SPEED;
 
 	if (hit > -1 && characters[hit].character > 0.f && mode == 4) {
+		characters[hit].walk(false, seatFor(hit));
 		characters[hit].character = -1.f;
 		if (characters[hit].sick > 0.f)
 			characters[hit].sick = -1.f;
-		bool allGone = true;
-		for (auto& chr : characters)
-			allGone &= chr.character <= 0.f;
-		if (allGone)
-			reset();
 	}
 }
 
@@ -101,14 +139,15 @@ void Train::keyboardCallback(GLFWwindow& window, int key, int scancode, int acti
 
 	if (key == GLFW_KEY_SPACE && mode == 0) {
 		for (int i = 0; i < characters.size(); i++) {
-			if (characters[i].character <= 0.f) {
-				characters[i].character = APPEARANCE_SPEED;
+			if (characters[i].character <= 0.f && !characters[i].mode) {
+				characters[i].walk(true, seatFor(i));
 				break;
 			}
 		}
 	} else if (key == GLFW_KEY_ENTER && mode == 0) {
 		int count = 0;
 		for (int i = 0; i < characters.size(); i++) {
+			if (characters[i].walker > 0.f) return;
 			if (characters[i].character > 0.f) {
 				if (characters[i].belt <= 0.f) return;
 				count++;
@@ -305,14 +344,16 @@ std::vector<float> Train::getLayers(int carIdx) {
 	std::vector<float> layers(5 + characters.size() * 2);
 	int chrIdx1 = carIdx * 2;
 	int chrIdx2 = carIdx * 2 + 1;
+	int imgIdx1 = characters[chrIdx1].idx;
+	int imgIdx2 = characters[chrIdx2].idx;
 	layers[layers.size() - 1] = float(carIdx > 0);
 	layers[layers.size() - 2] = float(!carIdx);
 	layers[layers.size() - 3] = std::fabs(characters[chrIdx1].belt);
 	layers[layers.size() - 4] = std::fabs(characters[chrIdx2].belt);
-	layers[1 + chrIdx1] = std::fabs(characters[chrIdx1].character);
-	layers[1 + chrIdx2] = std::fabs(characters[chrIdx2].character);
-	layers[1 + characters.size() + chrIdx1] = std::fabs(characters[chrIdx1].sick);
-	layers[1 + characters.size() + chrIdx2] = std::fabs(characters[chrIdx2].sick);
+	layers[1 + imgIdx1] = std::fabs(characters[chrIdx1].character);
+	layers[1 + imgIdx2] = std::fabs(characters[chrIdx2].character);
+	layers[1 + characters.size() + imgIdx1] = std::fabs(characters[chrIdx1].sick);
+	layers[1 + characters.size() + imgIdx2] = std::fabs(characters[chrIdx2].sick);
 	layers[0] = 1;
 	return layers;
 }
@@ -329,29 +370,28 @@ void Train::draw() {
 			secondHalf = i == 3 && !point.firstHalf;
 		}
 
-
 		for (int i = 1; i < cars.size(); i++) {
 			Coords left = edgePoint(cars[i - 1], CONNECTION_HEIGHT, cars[i - 1].angle, cars[i - 1].flip, CAR_PIVOT_OFFSET);
 			Coords right = edgePoint(cars[i], CONNECTION_HEIGHT, cars[i].angle, !cars[i].flip, CAR_PIVOT_OFFSET);
-			simulation.drawLine({ left, right }, CONNECTION_COLOR, CONNECTION_WIDTH, 0.2f, -90, CONNECTION_WIDTH * 0.45, false);
+			simulation.drawLine({ left, right }, CONNECTION_COLOR, CONNECTION_WIDTH, 0.2f, -90, CONNECTION_WIDTH * 0.45f, false);
 		}
 
+		for (auto& chr : characters)
+			chr.updateLayers();
 
-		for (auto& chr : characters) {
-			if (chr.character) chr.character = std::min(1.f, chr.character + APPEARANCE_SPEED);
-			if (chr.sick) chr.sick = std::min(1.f, chr.sick + APPEARANCE_SPEED);
-			if (chr.belt) chr.belt = std::min(1.f, chr.belt + APPEARANCE_SPEED);
-
-			if (std::fabs(chr.character) <= APPEARANCE_SPEED * 1.5f) chr.character = 0.f;
-			if (std::fabs(chr.sick) <= APPEARANCE_SPEED * 1.5f) chr.sick = 0.f;
-			if (std::fabs(chr.belt) <= APPEARANCE_SPEED * 1.5f) chr.belt = 0.f;
+		if (mode == 4) {
+			bool allGone = true;
+			for (auto& chr : characters)
+				allGone &= chr.character == 0.f && chr.walker == 0.f;
+			if (allGone) reset();
 		}
 
-		if (secondHalf) for (int i = cars.size() - 1; i >= 0; i--) {
+		if (secondHalf) for (int i = cars.size() - 1; i >= 0; i--)
 			carImage->draw(toContent(cars[i]), getLayers(i), cars[i].flip, cars[i].angle, CAR_PIVOT_OFFSET);
-		} else for (int i = 0; i < cars.size(); i++) {
+		else for (int i = 0; i < cars.size(); i++)
 			carImage->draw(toContent(cars[i]), getLayers(i), cars[i].flip, cars[i].angle, CAR_PIVOT_OFFSET);
-		}
+
+		for (auto& chr : characters)
+			chr.draw();
 	}
-
 }

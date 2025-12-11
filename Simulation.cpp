@@ -150,7 +150,7 @@ void Simulation::draw() {
 	if (!tracks.empty()) {
 		drawScaffolding();
 		platform.draw(Bounds(0.5f, BOTTOM_RATIO, PLATFORM_WIDTH), { true });
-		drawLine(tracks, Color(171, 87, 65), 5.2f, 0.2f, -80.f, 5.2f * 0.32);
+		drawLine(tracks, Color(171, 87, 65), 5.2f, 0.2f, -80.f, 5.2f * 0.32f);
 		train.draw();
 	} else {
 		platform.draw(Bounds(0.5f, BOTTOM_RATIO, PLATFORM_WIDTH), { true });

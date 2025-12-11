@@ -17,5 +17,5 @@ public:
 	Image(WindowManager& window, const std::vector<std::string>& paths);
 	~Image();
 
-	void draw(Bounds bounds, const std::vector<float>& opacity, bool flipX = false, float angle = 0.f, float pivotHeight = 0.f, bool widthRelative = true);
+	void draw(Bounds bounds, const std::vector<float>& opacity, bool flipX = false, float angle = 0.f, float pivotHeight = 0.f, bool widthRelative = true, long long frame = -1);
 };

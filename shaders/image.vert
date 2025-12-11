@@ -6,11 +6,19 @@ out vec2 uv;
 uniform vec2 uPos;
 uniform vec2 uSize;
 uniform int uFlipX;
+uniform int uSprite;
 uniform float uAngle;
+uniform int uFrameCount;
+uniform int uFrameIndex;
 uniform float uPivotHeight;
 
 void main() {
     uv = vec2(uFlipX == 1 ? 1.0 - quad.x : quad.x, quad.y);
+
+    if (uSprite == 1) {
+        float fw = 1.0 / float(uFrameCount);
+        uv.x = uv.x * fw + fw * float(uFrameIndex);
+    }
 
     vec2 pivot = vec2(0.5, uPivotHeight);
 
