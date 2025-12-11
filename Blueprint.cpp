@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <iostream>
 
 namespace {
 	constexpr float MARGIN = 50.f, TOP = 150.f;
@@ -121,7 +122,13 @@ void Blueprint::mouseCallback(double x, double y, int button, int action, int) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && !drawing.empty() && drawingActive) {
 		bool finishedOpposite = (hoveringPulse == 3 - startingPulse);
 		drawingActive = !finishedOpposite;
-		if (finishedOpposite) finalizeAndCloseLine(); else drawing.clear();
+		if (finishedOpposite) {
+			finalizeAndCloseLine();
+			computePoints();
+		} else {
+			drawing.clear();
+		}
+		drawingActive = drawing.empty();
 		startingPulse = 0;
 		computePoints();
 		saveTrack();
@@ -327,7 +334,7 @@ static inline void addHermite(std::vector<Coords>& out, const Coords& p0, const 
 	}
 }
 
-static inline Coords avgDir(const std::vector<Coords>& v, int start, int count) {
+static inline Coords computeTangent(const std::vector<Coords>& v, int start, int count) {
 	float sx = 0.f, sy = 0.f; int used = 0;
 	for (int i = 0; i < count; i++) {
 		int a = start + i, b = a + 1;
@@ -341,8 +348,28 @@ static inline Coords avgDir(const std::vector<Coords>& v, int start, int count) 
 	return (L < 1e-6f) ? Coords{ 1.f, 0.f } : Coords{ sx / L, sy / L };
 }
 
+static inline void smoothChaikin(const std::vector<Coords>& in, std::vector<Coords>& out) {
+	out.clear();
+	out.reserve(in.size() * 2);
+
+	out.push_back(in.front());
+	for (size_t i = 0; i + 1 < in.size(); i++) {
+		const Coords& A = in[i];
+		const Coords& B = in[i + 1];
+
+		out.push_back({ A.x * 0.75f + B.x * 0.25f,
+						A.y * 0.75f + B.y * 0.25f });
+		out.push_back({ A.x * 0.25f + B.x * 0.75f,
+						A.y * 0.25f + B.y * 0.75f });
+	}
+	out.push_back(in.back());
+}
+
 void Blueprint::finalizeAndCloseLine() {
-	if (drawing.size() < 2) return;
+	if (drawing.size() < 16) {
+		drawing.clear();
+		return;
+	}
 
 	if (drawing.front().x > drawing.back().x)
 		std::reverse(drawing.begin(), drawing.end());
@@ -367,8 +394,8 @@ void Blueprint::finalizeAndCloseLine() {
 	Coords A = drawing.front();
 	Coords B = drawing.back();
 
-	Coords dirA = avgDir(drawing, 0, 5);
-	Coords dirB = avgDir(drawing, (int)drawing.size() - 6, 5);
+	Coords dirA = computeTangent(drawing, 0, 5);
+	Coords dirB = computeTangent(drawing, (int)drawing.size() - 6, 5);
 
 	float curve = l.y * 2.4f;
 
@@ -396,6 +423,10 @@ void Blueprint::finalizeAndCloseLine() {
 	}
 
 	drawing.swap(out);
+
+	std::vector<Coords> sm;
+	smoothChaikin(drawing, sm);
+	drawing.swap(sm);
 
 	std::vector<float> seglen;
 	seglen.reserve(drawing.size());
@@ -442,6 +473,11 @@ void Blueprint::finalizeAndCloseLine() {
 }
 
 void Blueprint::computePoints() {
+	if (drawing.size() < 16) {
+		drawing.clear();
+		return;
+	}
+
 	points.clear();
 	points.reserve(drawing.size());
 	if (drawing.empty()) return;
@@ -481,9 +517,14 @@ void Blueprint::computePoints() {
 	}
 
 	for (size_t i = 1; i < angRad.size(); i++) {
-		float d = angRad[i] - angRad[i - 1];
-		if (d > PI)  angRad[i] -= TWO_PI;
-		if (d < -PI) angRad[i] += TWO_PI;
+		float curr = angRad[i];
+		float prev = angRad[i - 1];
+		float d = curr - prev;
+
+		while (d > PI) { curr -= TWO_PI; d -= TWO_PI; }
+		while (d < -PI) { curr += TWO_PI; d += TWO_PI; }
+
+		angRad[i] = curr;
 	}
 
 	std::vector<float> angSm(angRad.size());
@@ -514,6 +555,7 @@ void Blueprint::computePoints() {
 		accum += dist;
 	}
 }
+
 
 void Blueprint::draw() {
 	drawGrid();
