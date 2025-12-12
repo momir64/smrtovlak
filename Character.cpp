@@ -90,15 +90,15 @@ void Character::draw() {
 }
 
 void Character::updateLayers() {
-	character = std::min(1.f, character + APPEARANCE_SPEED * 0.33f);
+	character = std::min(1.f, character + APPEARANCE_SPEED * 0.8f);
 	sick = std::min(1.f, sick + APPEARANCE_SPEED);
 	belt = std::min(1.f, belt + APPEARANCE_SPEED);
 	walker = std::min(1.f, walker + APPEARANCE_SPEED);
-	idle = std::min(1.f, idle + APPEARANCE_SPEED * 0.33f);
+	idle = std::min(1.f, idle + APPEARANCE_SPEED * 0.8f);
 
-	if (std::fabs(character) <= APPEARANCE_SPEED * 0.5f) character = 0.f;
+	if (std::fabs(character) <= APPEARANCE_SPEED * 1.2f) character = 0.f;
 	if (std::fabs(sick) <= APPEARANCE_SPEED * 1.5f) sick = 0.f;
 	if (std::fabs(belt) <= APPEARANCE_SPEED * 1.5f) belt = 0.f;
 	if (std::fabs(walker) <= APPEARANCE_SPEED * 1.5f) walker = 0.f;
-	if (std::fabs(idle) <= APPEARANCE_SPEED * 0.5f) idle = 0.f;
+	if (std::fabs(idle) <= APPEARANCE_SPEED * 1.2f) idle = 0.f;
 }
