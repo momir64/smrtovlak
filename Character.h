@@ -3,6 +3,7 @@
 #include <chrono>
 
 class Character {
+	std::chrono::steady_clock::time_point lastUpdateTimeOpacity;
 	std::chrono::steady_clock::time_point lastUpdateTime;
 	float frameTime, xStop = 0.5f;
 	long long currentFrame = 0;

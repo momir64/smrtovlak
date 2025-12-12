@@ -8,15 +8,15 @@
 namespace {
 	constexpr float PLATFORM_WIDTH_IN = 0.42f, PLATFORM_WIDTH_OUT = 0.45f, CHARACTER_WIDTH = 0.1f;
 	constexpr float GROUND_HEIGHT = 0.035f, PLATFORM_HEIGHT = 0.068f;
+	constexpr float APPEARANCE_SPEED = 0.1f, START_OPACITY = 0.08f;
 	constexpr float FPS = 14.f, MOVING_SPEED = 0.09f;
-	constexpr float APPEARANCE_SPEED = 0.013f;
-	constexpr float IDLE_TIME = 0.32f;
+	constexpr float IDLE_TIME = 0.24f;
 }
 
 void Character::walk(bool in, float xStop) {
 	std::mt19937 rng(std::random_device{}());
 	std::bernoulli_distribution dist(0.5);
-	walker = in ? 1.f : APPEARANCE_SPEED;
+	walker = in ? 1.f : START_OPACITY;
 	this->xStop = xStop;
 	goLeft = dist(rng);
 	mode = in ? 1 : 2;
@@ -45,7 +45,7 @@ void Character::draw() {
 	if (idle > 0.f) {
 		if (frameTime < 0.f) {
 			idle = -1.f;
-			character = APPEARANCE_SPEED;
+			character = START_OPACITY;
 			mode = 0;
 		} else
 			frameTime -= dt;
@@ -90,15 +90,27 @@ void Character::draw() {
 }
 
 void Character::updateLayers() {
-	character = std::min(1.f, character + APPEARANCE_SPEED * 0.8f);
-	sick = std::min(1.f, sick + APPEARANCE_SPEED);
-	belt = std::min(1.f, belt + APPEARANCE_SPEED);
-	walker = std::min(1.f, walker + APPEARANCE_SPEED);
-	idle = std::min(1.f, idle + APPEARANCE_SPEED * 0.8f);
+	float dt;
+	int tryAgain = 2;
+	while (tryAgain > 0) {
+		auto now = std::chrono::steady_clock::now();
+		dt = std::chrono::duration<float>(now - lastUpdateTimeOpacity).count();
+		lastUpdateTimeOpacity = now;
+		if (dt < 0.5) tryAgain--;
+		tryAgain--;
+	}
 
-	if (std::fabs(character) <= APPEARANCE_SPEED * 1.2f) character = 0.f;
-	if (std::fabs(sick) <= APPEARANCE_SPEED * 1.5f) sick = 0.f;
-	if (std::fabs(belt) <= APPEARANCE_SPEED * 1.5f) belt = 0.f;
-	if (std::fabs(walker) <= APPEARANCE_SPEED * 1.5f) walker = 0.f;
-	if (std::fabs(idle) <= APPEARANCE_SPEED * 1.2f) idle = 0.f;
+	float delta = APPEARANCE_SPEED * dt * 60.f;
+
+	character = std::min(1.f, character + delta);
+	sick = std::min(1.f, sick + delta);
+	belt = std::min(1.f, belt + delta);
+	walker = std::min(1.f, walker + delta);
+	idle = std::min(1.f, idle + delta);
+
+	if (std::fabs(character) <= delta * 1.5f) character = 0.f;
+	if (std::fabs(sick) <= delta * 1.5f) sick = 0.f;
+	if (std::fabs(belt) <= delta * 1.5f) belt = 0.f;
+	if (std::fabs(walker) <= delta * 1.5f) walker = 0.f;
+	if (std::fabs(idle) <= delta * 1.5f) idle = 0.f;
 }

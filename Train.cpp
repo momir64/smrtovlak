@@ -18,8 +18,8 @@ namespace {
 	constexpr float CONNECTION_HEIGHT = 0.016f, CONNECTION_WIDTH = 3.8f, CONNECTION_RATIO = 0.6f;
 	constexpr float BELT_HEIGHT_OFFSET = 0.4f, BELT_WIDTH = 0.009f, BELT_HEIGHT = 0.011f;
 	constexpr float TRAIN_START_OFFSET = 0.045f, TRAIN_TRACKS_OFFSET = 0.006f;
-	constexpr float APPEARANCE_SPEED = 0.013f;
 	constexpr float PASSENGER_OFFSET = 0.15f;
+	constexpr float START_OPACITY = 0.08f;
 
 	constexpr float SLOWDOWN_DISTANCE = 0.08f, FINISH_SLOWDOWN_DISTANCE = 0.3f, FINISH_SLOWDOWN_DISTANCE_SICK = 0.15f, FINISHED_DISTANCE = 0.0002f;
 	constexpr float TRAIN_MIN_SPEED = 0.11f, TRAIN_MAX_SPEED = 0.58f, TRAIN_MAX_SPEED_SICK = 0.1f;
@@ -124,7 +124,7 @@ void Train::mouseCallback(double x, double y, int button, int action, int mods) 
 
 	int hit = seatHit(x, y);
 	if (hit > -1 && characters[hit].belt <= 0.f && mode == 0)
-		characters[hit].belt = APPEARANCE_SPEED;
+		characters[hit].belt = START_OPACITY;
 
 	if (hit > -1 && characters[hit].character > 0.f && mode == 4) {
 		characters[hit].walk(false, seatFor(hit));
@@ -161,7 +161,7 @@ void Train::keyboardCallback(GLFWwindow& window, int key, int scancode, int acti
 		int number = key - GLFW_KEY_1;
 		if (number < characters.size() && characters[number].character > 0) {
 			stopDistance = currentDistance + SLOWDOWN_DISTANCE;
-			characters[number].sick = APPEARANCE_SPEED;
+			characters[number].sick = START_OPACITY;
 			mode = 2;
 		}
 	}
