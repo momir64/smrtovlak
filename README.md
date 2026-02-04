@@ -1,10 +1,10 @@
 # Usage
-- Esc - quit the app
-- R - reset the current mode
-- F - toggle fullscreen
-- Space - add a new passenger
-- Enter - start a ride (only if all passengers are buckled up)
-- Mouse - buckle up passengers / draw the track shape
+- `Esc` - quit the app
+- `R` - reset the current mode
+- `F` - toggle fullscreen
+- `Space` - add a new passenger
+- `Enter` - start a ride (only if all passengers are buckled up)
+- `Mouse` - buckle up passengers / draw the track shape
 
 The latest track drawing is stored in the `smrtovlak.track` file.
 
