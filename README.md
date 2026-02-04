@@ -1,4 +1,4 @@
-# Usage
+## Usage
 - `Esc` - quit the app
 - `R` - reset the current mode
 - `F` - toggle fullscreen
@@ -6,9 +6,10 @@
 - `Enter` - start a ride (only if all passengers are buckled up)
 - `Mouse` - buckle up passengers / draw the track shape
 
+## Track saving and loading
 The latest track drawing is stored in the `smrtovlak.track` file.
 
-# Simulation mode
+## Simulation mode
 ![image](assets/demo/simulation.png)
-# Blueprint mode
+## Blueprint mode
 ![image](assets/demo/blueprint.png)
